@@ -103,7 +103,7 @@ export function MediaLibrary({ initial }: { initial: ListResponse }) {
           <EmptyState
             icon={ImageIcon}
             title={search ? "No images match your search" : "No media yet"}
-            description={search ? "Try a different filename or alt text." : "Upload images to use in blog posts, testimonials and doctor profiles."}
+            description={search ? "Try a different filename or alt text." : "Upload images to use in age group pages, blog posts and testimonials."}
             action={
               !search && (
                 <Button onClick={() => setIsUploadOpen(true)}>

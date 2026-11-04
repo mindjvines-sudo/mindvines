@@ -49,7 +49,7 @@ export default async function BlogListPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Blog"
-        description="Health articles and clinic news published on the website."
+        description="Articles and news for parents."
         actions={
           canCreate && (
             <ButtonLink href="/admin/blog/new">
@@ -82,7 +82,7 @@ export default async function BlogListPage({
             icon={DocumentIcon}
             title={search || status ? "No matching posts" : "No blog posts yet"}
             description={
-              search || status ? "Try a different search or status filter." : "Write your first article for patients."
+              search || status ? "Try a different search or status filter." : "Write your first article for parents."
             }
             action={
               search || status ? (

@@ -20,6 +20,23 @@ export async function getSiteSettings() {
   };
 }
 
+/** The heading above the homepage's age group cards; empty means the built-in one. */
+export async function getAgeGroupsHeading() {
+  await connectToDatabase();
+  const settings = await SiteSettings.findOne().select("ageGroupsHeading").lean();
+  return settings?.ageGroupsHeading ?? "";
+}
+
+export async function updateAgeGroupsHeading(heading: string, userId: string) {
+  await connectToDatabase();
+  return SiteSettings.findOneAndUpdate(
+    {},
+    // The settings document may not exist yet; it needs a site name when created.
+    { $set: { ageGroupsHeading: heading, updatedBy: userId }, $setOnInsert: { siteName: siteConfig.name, tagline: siteConfig.tagline } },
+    { new: true, upsert: true }
+  );
+}
+
 export async function updateSiteSettings(input: SettingsInput, userId: string) {
   await connectToDatabase();
   return SiteSettings.findOneAndUpdate(

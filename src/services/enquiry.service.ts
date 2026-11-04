@@ -11,14 +11,7 @@ export async function createEnquiry(input: Omit<EnquiryInput, "company">, ipAddr
     name: input.name,
     email: input.email,
     phone: input.phone || undefined,
-    // The Contact page form has no subject field; an appointment request
-    // is labelled by its department so it reads clearly in the admin list.
-    subject:
-      input.subject ||
-      (input.department ? `Appointment request: ${input.department}` : undefined),
-    department: input.department || undefined,
-    doctor: input.doctor || undefined,
-    preferredDate: input.preferredDate || undefined,
+    subject: input.subject || undefined,
     childAge: input.childAge || undefined,
     message: input.message ?? "",
     ipAddress,
@@ -80,7 +73,7 @@ export async function getEnquiryStats() {
 export async function listRecentEnquiries(limit = 5) {
   await connectToDatabase();
   return ContactEnquiry.find()
-    .select("name email subject department doctor preferredDate status createdAt")
+    .select("name email subject childAge status createdAt")
     .sort({ createdAt: -1 })
     .limit(limit)
     .lean();
@@ -124,44 +117,22 @@ export async function countNewEnquiries() {
   return ContactEnquiry.countDocuments({ status: "NEW" });
 }
 
-/**
- * Dashboard analytics, all read-only: enquiries by status, appointment
- * requests (enquiries that name a department) by department, this month
- * against last month, and how many requested dates are still ahead.
- */
+/** Dashboard analytics, all read-only: enquiries by status, and this month against last month. */
 export async function getEnquiryInsights() {
   await connectToDatabase();
   const thisMonth = startOfMonth();
   const lastMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth() - 1, 1);
-  const today = new Date().toISOString().slice(0, 10);
-  const isAppointment = { department: { $exists: true, $nin: [null, ""] } };
 
-  const [byStatusRows, byDepartmentRows, totalThisMonth, totalLastMonth, apptThisMonth, apptLastMonth, upcoming] =
-    await Promise.all([
-      ContactEnquiry.aggregate<{ _id: string; count: number }>([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
-      ContactEnquiry.aggregate<{ _id: string; count: number }>([
-        { $match: isAppointment },
-        { $group: { _id: "$department", count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-      ]),
-      ContactEnquiry.countDocuments({ createdAt: { $gte: thisMonth } }),
-      ContactEnquiry.countDocuments({ createdAt: { $gte: lastMonth, $lt: thisMonth } }),
-      ContactEnquiry.countDocuments({ ...isAppointment, createdAt: { $gte: thisMonth } }),
-      ContactEnquiry.countDocuments({ ...isAppointment, createdAt: { $gte: lastMonth, $lt: thisMonth } }),
-      ContactEnquiry.countDocuments({
-        preferredDate: { $gte: today },
-        status: { $nin: ["RESOLVED", "ARCHIVED"] },
-      }),
-    ]);
+  const [byStatusRows, totalThisMonth, totalLastMonth] = await Promise.all([
+    ContactEnquiry.aggregate<{ _id: string; count: number }>([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+    ContactEnquiry.countDocuments({ createdAt: { $gte: thisMonth } }),
+    ContactEnquiry.countDocuments({ createdAt: { $gte: lastMonth, $lt: thisMonth } }),
+  ]);
 
   return {
     byStatus: Object.fromEntries(byStatusRows.map((row) => [row._id, row.count])) as Record<string, number>,
-    byDepartment: byDepartmentRows.map((row) => ({ label: row._id, count: row.count })),
     totalThisMonth,
     totalLastMonth,
-    appointmentsThisMonth: apptThisMonth,
-    appointmentsLastMonth: apptLastMonth,
-    upcomingAppointments: upcoming,
   };
 }
 

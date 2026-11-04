@@ -15,8 +15,9 @@ import {
 import { getMediaStats } from "@/services/media.service";
 import { listRecentAuditLogs } from "@/services/audit.service";
 import { StatTile } from "@/components/admin/stat-tile";
+import { SubscriptionAnalytics } from "@/components/admin/subscription-analytics";
 import { EnquiriesChart } from "@/components/admin/enquiries-chart";
-import { BarList, DonutChart } from "@/components/admin/charts";
+import { DonutChart } from "@/components/admin/charts";
 import { activityTone, describeActivity } from "@/components/admin/activity";
 import { Card, CardHeader, CardLink } from "@/components/admin/ui/card";
 import { PageHeader } from "@/components/admin/ui/page-header";
@@ -31,9 +32,6 @@ import {
   InboxIcon,
   ChartIcon,
   ImageIcon,
-  CalendarIcon,
-  StethoscopeIcon,
-  HeartPulseIcon,
   CheckCircleIcon,
   PlusIcon,
   UploadIcon,
@@ -99,7 +97,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     },
     canReadEnquiries && { href: "/admin/enquiries?status=NEW", icon: InboxIcon, label: "Reply to new enquiries" },
     can(user.role, "create", "media") && { href: "/admin/media", icon: UploadIcon, label: "Upload media" },
-    can(user.role, "update", "settings") && { href: "/admin/settings", icon: GearIcon, label: "Update clinic details" },
+    can(user.role, "update", "settings") && { href: "/admin/settings", icon: GearIcon, label: "Update site settings" },
   ].filter(Boolean) as { href: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; label: string }[];
 
   const firstName = user.name.trim().split(/\s+/)[0];
@@ -108,7 +106,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     <div className="flex flex-col gap-6 lg:gap-8">
       <PageHeader
         title={`Welcome back, ${firstName}`}
-        description="Here’s how patient enquiries and your website are doing."
+        description="Here’s how subscriptions, enquiries and your website are doing."
         actions={
           <>
             {canReadEnquiries && (
@@ -127,8 +125,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         }
       />
 
-      {/* Patient care metrics */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Enquiry metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile
           icon={InboxIcon}
           color="blue"
@@ -138,22 +136,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           href={canReadEnquiries ? "/admin/enquiries?status=NEW" : undefined}
         />
         <StatTile
-          icon={StethoscopeIcon}
+          icon={ChartIcon}
           color="teal"
-          label="Appointment requests this month"
-          value={insights.appointmentsThisMonth}
+          label="Enquiries this month"
+          value={insights.totalThisMonth}
           compare={{
-            current: insights.appointmentsThisMonth,
-            previous: insights.appointmentsLastMonth,
+            current: insights.totalThisMonth,
+            previous: insights.totalLastMonth,
             period: "last month",
           }}
-        />
-        <StatTile
-          icon={CalendarIcon}
-          color="violet"
-          label="Upcoming requested dates"
-          value={insights.upcomingAppointments}
-          note="Open requests with a preferred date from today"
         />
         <StatTile
           icon={CheckCircleIcon}
@@ -163,6 +154,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           note={`${resolved} of ${enquiryStats.total} enquiries resolved`}
         />
       </div>
+
+      {can(user.role, "read", "subscribers") && <SubscriptionAnalytics />}
 
       {/* Analytics */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -196,7 +189,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </Card>
 
         <Card>
-          <CardHeader icon={HeartPulseIcon} title="Enquiry status" description="Where every enquiry stands today" />
+          <CardHeader icon={InboxIcon} title="Enquiry status" description="Where every enquiry stands today" />
           <div className="p-5">
             <DonutChart
               totalLabel="Enquiries"
@@ -211,12 +204,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="overflow-hidden lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="overflow-hidden">
           <CardHeader
             icon={InboxIcon}
             title="Latest enquiries"
-            description="Newest messages and appointment requests"
+            description="Newest messages from the contact form"
             action={canReadEnquiries ? <CardLink href="/admin/enquiries">View all</CardLink> : undefined}
             className="pb-4"
           />
@@ -224,16 +217,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <EmptyState
               icon={InboxIcon}
               title="No enquiries yet"
-              description="Messages sent from the website’s Contact page will appear here."
+              description="Messages sent from the website’s contact form will appear here."
               className="border-t border-line"
             />
           ) : (
             <Table minWidth={440}>
               <THead>
                 <tr>
-                  <Th>Patient</Th>
-                  <Th hideBelow="md">Request</Th>
-                  <Th hideBelow="sm">Preferred date</Th>
+                  <Th>Name</Th>
+                  <Th hideBelow="md">Enquiry</Th>
+                  <Th hideBelow="sm">Child&apos;s age</Th>
                   <Th>Status</Th>
                 </tr>
               </THead>
@@ -262,18 +255,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     </Td>
                     <Td hideBelow="md">
                       <span className="block max-w-[220px] truncate">
-                        {enquiry.department || enquiry.subject || "General enquiry"}
+                        {enquiry.subject || "General enquiry"}
                       </span>
-                      {enquiry.doctor && <span className="block truncate text-xs text-slate-400">{enquiry.doctor}</span>}
                     </Td>
                     <Td hideBelow="sm" className="tabular-nums">
-                      {enquiry.preferredDate
-                        ? new Date(`${enquiry.preferredDate}T00:00:00`).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "—"}
+                      {enquiry.childAge || "—"}
                     </Td>
                     <Td>
                       <StatusBadge status={enquiry.status} kind="enquiry" />
@@ -285,25 +271,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           )}
         </Card>
 
-        <Card>
-          <CardHeader
-            icon={StethoscopeIcon}
-            title="Requests by service"
-            description="Appointment requests per physiotherapy service"
-          />
-          <div className="p-5">
-            {insights.byDepartment.length === 0 ? (
-              <EmptyState
-                icon={StethoscopeIcon}
-                title="No appointment requests yet"
-                description="Requests that pick a service on the Contact page are counted here."
-                className="py-8"
-              />
-            ) : (
-              <BarList items={insights.byDepartment.slice(0, 6).map((d) => ({ label: d.label, value: d.count }))} />
-            )}
-          </div>
-        </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -349,7 +316,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             action={<CardLink href="/admin/blog">View all</CardLink>}
           />
           {recentBlogPosts.length === 0 ? (
-            <EmptyState icon={DocumentIcon} title="No posts yet" description="Write your first article for patients." />
+            <EmptyState icon={DocumentIcon} title="No posts yet" description="Write your first article for parents." />
           ) : (
             <ul className="flex flex-col gap-1 p-3">
               {recentBlogPosts.map((post) => {

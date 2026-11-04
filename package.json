@@ -9,6 +9,8 @@
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
     "test:subscriptions": "tsx --test tests/subscription.test.ts",
+    "test:age-groups": "tsx --test tests/age-group.test.ts",
+    "test:payments": "tsx --test tests/payments.test.ts",
     "test:auth": "tsx --conditions=react-server --test tests/auth.test.ts"
   },
   "dependencies": {

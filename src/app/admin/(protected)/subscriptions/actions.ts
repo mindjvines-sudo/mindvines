@@ -35,6 +35,9 @@ export async function createSubscriptionAction(_prev: SubscriptionFormState, for
   if (result.data.status === "PUBLISHED" && !can(user.role, "publish", "subscriptions")) {
     return { message: "You do not have permission to publish subscription plans." };
   }
+  if (await subscriptions.subscriptionPlanExists(result.data)) {
+    return { errors: { name: ["A plan with this name already exists for this age group and duration."] } };
+  }
   try {
     const plan = await subscriptions.createSubscriptionPlan(result.data);
     await logAction({ userId: user.id, action: "CREATE", entity: "SubscriptionPlan", entityId: plan._id.toString() });
@@ -52,6 +55,9 @@ export async function updateSubscriptionAction(id: string, _prev: SubscriptionFo
   if (!result.success) return { errors: result.error.flatten().fieldErrors };
   if (result.data.status === "PUBLISHED" && !can(user.role, "publish", "subscriptions")) {
     return { message: "You do not have permission to publish subscription plans." };
+  }
+  if (await subscriptions.subscriptionPlanExists(result.data, id)) {
+    return { errors: { name: ["A plan with this name already exists for this age group and duration."] } };
   }
   try {
     const plan = await subscriptions.updateSubscriptionPlan(id, result.data);

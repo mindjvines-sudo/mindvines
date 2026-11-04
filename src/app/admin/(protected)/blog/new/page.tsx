@@ -11,7 +11,7 @@ export default function NewBlogPostPage() {
       <PageHeader
         back={{ href: "/admin/blog", label: "All posts" }}
         title="New blog post"
-        description="Write an article for patients. Save it as a draft until it’s ready to publish."
+        description="Write an article for parents. Save it as a draft until it’s ready to publish."
       />
       <BlogForm action={createBlogPostAction} submitLabel="Create post" />
     </div>

@@ -55,7 +55,7 @@ export function BlogForm({
             label="Slug"
             htmlFor="slug"
             error={errors?.slug}
-            hint="The post’s address: thefysit.com/blog/your-slug"
+            hint="The post’s address: mindvines.in/blog/your-slug"
             required
           >
             <Input id="slug" name="slug" defaultValue={defaultValues?.slug} required invalid={!!errors?.slug} />

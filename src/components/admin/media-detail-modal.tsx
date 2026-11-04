@@ -14,9 +14,7 @@ import type { MediaUsage } from "@/services/media.service";
 const USAGE_LABELS: Record<MediaUsage["type"], string> = {
   blog: "Blog",
   testimonial: "Testimonial",
-  doctor: "Doctor",
-  service: "Service",
-  location: "Location",
+  ageGroup: "Age group",
 };
 
 export function MediaDetailModal({

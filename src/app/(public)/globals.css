@@ -12,6 +12,7 @@
   --font-sans: var(--font-nunito-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-fredoka), ui-rounded, ui-sans-serif, system-ui, sans-serif;
   --font-ui: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+  --font-label: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme {
@@ -92,6 +93,16 @@
       47px 88px,
       100% 88px;
     background-repeat: repeat-y;
+  }
+
+  /* The live site's zigzag rule: amber teeth 4px wide and 3px tall. */
+  .zigzag-rule {
+    height: 3px;
+    background-image:
+      linear-gradient(to left top, transparent 50%, var(--color-amber) 0),
+      linear-gradient(to left bottom, var(--color-amber) 50%, transparent 0);
+    background-size: 4px 3px;
+    background-repeat: repeat-x;
   }
 }
 

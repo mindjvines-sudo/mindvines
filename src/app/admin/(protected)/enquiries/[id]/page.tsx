@@ -11,13 +11,11 @@ import { StatusBadge, statusLabel } from "@/components/admin/ui/badge";
 import { ActionButton, ConfirmAction } from "@/components/admin/ui/confirm-action";
 import { buttonClasses } from "@/components/admin/ui/button";
 import {
-  CalendarIcon,
   CheckIcon,
   ClockIcon,
   InboxIcon,
   MailIcon,
   PhoneIcon,
-  StethoscopeIcon,
   TrashIcon,
   UserIcon,
 } from "@/components/admin/icons";
@@ -35,14 +33,6 @@ export default async function EnquiryDetailPage({ params }: { params: Promise<{ 
   const canUpdate = can(user.role, "update", "enquiries");
   const canDelete = can(user.role, "delete", "enquiries");
   const received = new Date(enquiry.createdAt);
-  const preferred = enquiry.preferredDate
-    ? new Date(`${enquiry.preferredDate}T00:00:00`).toLocaleDateString(undefined, {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
-    : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,22 +67,11 @@ export default async function EnquiryDetailPage({ params }: { params: Promise<{ 
               <p className="px-5 pb-6 pt-4 text-[15px] leading-7 text-slate-400">No message was left.</p>
             )}
           </Card>
-
-          {(enquiry.department || enquiry.doctor || preferred) && (
-            <Card>
-              <CardHeader icon={StethoscopeIcon} title="Appointment request" description="Details the patient chose on the Contact page" />
-              <dl className="mt-5 grid gap-px overflow-hidden rounded-b-2xl border-t border-line bg-line sm:grid-cols-3">
-                <Detail label="Service" value={enquiry.department} />
-                <Detail label="Preferred doctor" value={enquiry.doctor} />
-                <Detail label="Preferred date" value={preferred} />
-              </dl>
-            </Card>
-          )}
         </div>
 
         <div className="flex flex-col gap-6">
           <Card>
-            <CardHeader icon={UserIcon} title="Patient" />
+            <CardHeader icon={UserIcon} title="Contact details" />
             <dl className="flex flex-col gap-4 px-5 pb-5 pt-4 text-sm">
               <ContactRow label="Name" value={enquiry.name} />
               <ContactRow
@@ -181,18 +160,6 @@ export default async function EnquiryDetailPage({ params }: { params: Promise<{ 
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function Detail({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="bg-white px-5 py-4">
-      <dt className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-        {label === "Preferred date" ? <CalendarIcon className="size-3.5" /> : null}
-        {label}
-      </dt>
-      <dd className="mt-1 text-sm font-medium text-navy-900">{value || <span className="text-slate-400">—</span>}</dd>
     </div>
   );
 }

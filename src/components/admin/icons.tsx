@@ -262,25 +262,6 @@ export function InboxIcon(props: IconProps) {
   );
 }
 
-export function StethoscopeIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="M6 3.5H5a1 1 0 0 0-1 1V9a5 5 0 0 0 10 0V4.5a1 1 0 0 0-1-1h-1" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9 14v1.5a5 5 0 0 0 10 0V13" strokeLinecap="round" />
-      <circle cx="19" cy="11" r="2" />
-    </svg>
-  );
-}
-
-export function HeartPulseIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="M20 9.5c0 5-8 10-8 10s-8-5-8-10a4.5 4.5 0 0 1 8-2.8 4.5 4.5 0 0 1 8 2.8Z" strokeLinejoin="round" />
-      <path d="M4.5 12.5h4l1.5-2.5 2 4 1.5-2h6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 export function SidebarIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
@@ -366,11 +347,3 @@ export function LayersIcon(props: IconProps) {
   );
 }
 
-export function MapPinIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" strokeLinejoin="round" />
-      <circle cx="12" cy="10" r="2.4" />
-    </svg>
-  );
-}

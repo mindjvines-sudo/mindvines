@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { SubscriptionPlans, SubscriptionPlansLoading } from "@/components/sections/SubscriptionPlans";
 import { siteConfig } from "@/config/site";
 import { buildMetadata } from "@/lib/seo";
-import { AgeGroups } from "@/components/sections/AgeGroups";
+import { AgeGroups, AgeGroupsLoading } from "@/components/sections/AgeGroups";
 import { Contact } from "@/components/sections/Contact";
 import { Faq } from "@/components/sections/Faq";
 import { FounderNote } from "@/components/sections/FounderNote";
@@ -55,9 +54,9 @@ export default function HomePage() {
       <Journey />
       <MoreThanJournal />
       <WhatGrows />
-      <AgeGroups />
-      <Suspense fallback={<SubscriptionPlansLoading />}><SubscriptionPlans /></Suspense>
+      <Suspense fallback={<AgeGroupsLoading />}><AgeGroups /></Suspense>
       <FounderNote />
+      <Suspense fallback={<AgeGroupsLoading anchor={false} />}><AgeGroups anchor={false} /></Suspense>
       <Faq />
       <Contact />
     </>

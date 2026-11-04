@@ -3,17 +3,16 @@ import { Role } from "@/lib/constants";
 export const RESOURCES = [
   "subscriptions",
   "pages",
-  "services",
+  "ageGroups",
   "projects",
   "blog",
   "categories",
   "tags",
   "faqs",
   "testimonials",
-  "team",
-  "locations",
   "media",
   "enquiries",
+  "subscribers",
   "users",
   "redirects",
   "settings",
@@ -25,15 +24,13 @@ export type Action = "create" | "read" | "update" | "delete" | "publish";
 
 const CONTENT_RESOURCES: Resource[] = [
   "pages",
-  "services",
+  "ageGroups",
   "projects",
   "blog",
   "categories",
   "tags",
   "faqs",
   "testimonials",
-  "team",
-  "locations",
 ];
 
 // SUPER_ADMIN implicitly has every permission (short-circuited in `can()`).
@@ -48,6 +45,8 @@ const MATRIX: Record<Exclude<Role, "SUPER_ADMIN">, Partial<Record<Resource, Acti
     ),
     media: ["create", "read", "update", "delete"],
     enquiries: ["read", "update", "delete"],
+    // Paying customers: view, search, export and cancel. Payments themselves are never edited here.
+    subscribers: ["read", "update"],
     redirects: ["create", "read", "update", "delete"],
     settings: ["read", "update"],
   },

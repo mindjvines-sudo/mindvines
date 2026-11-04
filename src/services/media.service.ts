@@ -3,13 +3,11 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Media } from "@/models/Media";
 import { BlogPost } from "@/models/BlogPost";
 import { Testimonial } from "@/models/Testimonial";
-import { Doctor } from "@/models/Doctor";
-import { Service } from "@/models/Service";
-import { Location } from "@/models/Location";
+import { AgeGroup, AGE_GROUP_IMAGE_PATHS } from "@/models/AgeGroup";
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary";
 import { getPagination, totalPages, startOfMonth } from "@/lib/utils";
 
-export type MediaUsage = { type: "blog" | "testimonial" | "doctor" | "service" | "location"; id: string; title: string };
+export type MediaUsage = { type: "blog" | "testimonial" | "ageGroup"; id: string; title: string };
 
 export class MediaInUseError extends Error {
   usage: MediaUsage[];
@@ -76,24 +74,18 @@ export async function updateMediaMetadata(id: string, updates: { altText?: strin
 
 export async function findMediaUsage(id: string): Promise<MediaUsage[]> {
   await connectToDatabase();
-  const [blogPosts, testimonials, doctors, services, locations] = await Promise.all([
+  const [blogPosts, testimonials, ageGroups] = await Promise.all([
     BlogPost.find({ featuredImage: id }).select("title").lean(),
     Testimonial.find({ image: id }).select("authorName").lean(),
-    Doctor.find({ photo: id }).select("name").lean(),
-    Service.find({ $or: [{ image: id }, { bannerImage: id }] }).select("name").lean(),
-    Location.find({
-      $or: [{ bannerImage: id }, { teamImage: id }, { corporateImage: id }, { "approach.image": id }],
-    })
-      .select("name")
+    AgeGroup.find({ $or: AGE_GROUP_IMAGE_PATHS.map((path) => ({ [path]: id })) })
+      .select("title")
       .lean(),
   ]);
 
   return [
     ...blogPosts.map((post) => ({ type: "blog" as const, id: post._id.toString(), title: post.title })),
     ...testimonials.map((t) => ({ type: "testimonial" as const, id: t._id.toString(), title: t.authorName })),
-    ...doctors.map((d) => ({ type: "doctor" as const, id: d._id.toString(), title: d.name })),
-    ...services.map((s) => ({ type: "service" as const, id: s._id.toString(), title: s.name })),
-    ...locations.map((l) => ({ type: "location" as const, id: l._id.toString(), title: l.name })),
+    ...ageGroups.map((a) => ({ type: "ageGroup" as const, id: a._id.toString(), title: a.title })),
   ];
 }
 

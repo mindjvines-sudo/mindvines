@@ -10,7 +10,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" description="Clinic details used across the website." />
+      <PageHeader title="Settings" description="Your site’s name and contact details." />
       <SettingsForm
         defaultValues={{
           siteName: settings.siteName,

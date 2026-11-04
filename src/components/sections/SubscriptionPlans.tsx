@@ -1,7 +1,6 @@
 import { connection } from "next/server";
 import Link from "next/link";
 import { PillButton } from "@/components/ui/PillButton";
-import { REGISTER_HREF } from "@/lib/content";
 import { formatPlanPrice, SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 import { listPublishedSubscriptionPlans } from "@/services/subscription.service";
 
@@ -43,18 +42,7 @@ export async function SubscriptionPlans() {
               </div>
             ) : (
               <div className="mt-7 grid items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {group.map((plan) => <article key={plan._id.toString()} className={`flex h-full flex-col rounded-[30px] border-2 p-7 shadow-card ${plan.featured ? "border-cocoa bg-stone" : "border-transparent bg-paper"}`}>
-                  {plan.featured && <span className="mb-5 self-start rounded-full bg-cocoa px-4 py-1 text-sm font-bold text-paper">Recommended</span>}
-                  <h4 className="break-words font-display text-3xl font-semibold">{plan.name}</h4>
-                  <p className="mt-3 whitespace-pre-line break-words leading-relaxed">{plan.description}</p>
-                  <p className="mt-6 text-4xl font-bold tabular-nums">{formatPlanPrice(plan.price)}</p>
-                  <p className="mt-2 text-sm">Total for {plan.durationMonths} {plan.durationMonths === 1 ? "month" : "months"}</p>
-                  <p className="mt-6 border-t border-ink/15 pt-5 font-bold">{plan.journalCount} {plan.journalCount === 1 ? "journal" : "journals"} included</p>
-                  {plan.features.length > 0 && <ul className="mt-4 space-y-3">
-                    {plan.features.map((feature, index) => <li key={index} className="flex gap-3"><span aria-hidden className="font-bold">✓</span><span className="break-words">{feature}</span></li>)}
-                  </ul>}
-                  <div className="mt-auto pt-8"><PillButton href={plan.registrationUrl || REGISTER_HREF}>Choose this plan<span className="sr-only">: {plan.name}, ages {age}</span></PillButton></div>
-                </article>)}
+                {group.map((plan) => <PlanCard key={plan._id.toString()} plan={plan} />)}
               </div>
             )}
           </div>;
@@ -62,4 +50,23 @@ export async function SubscriptionPlans() {
       </div>
     </section>
   );
+}
+
+type Plan = Awaited<ReturnType<typeof listPublishedSubscriptionPlans>>[number];
+
+/** One plan; also listed on each age group's page. */
+export function PlanCard({ plan, headingLevel = "h4" }: { plan: Plan; headingLevel?: "h3" | "h4" }) {
+  const Heading = headingLevel;
+  return <article className={`flex h-full flex-col rounded-[30px] border-2 p-7 shadow-card ${plan.featured ? "border-cocoa bg-stone" : "border-transparent bg-paper"}`}>
+    {plan.featured && <span className="mb-5 self-start rounded-full bg-cocoa px-4 py-1 text-sm font-bold text-paper">Recommended</span>}
+    <Heading className="break-words font-display text-3xl font-semibold">{plan.name}</Heading>
+    <p className="mt-3 whitespace-pre-line break-words leading-relaxed">{plan.description}</p>
+    <p className="mt-6 text-4xl font-bold tabular-nums">{formatPlanPrice(plan.price)}</p>
+    <p className="mt-2 text-sm">Total for {plan.durationMonths} {plan.durationMonths === 1 ? "month" : "months"}</p>
+    <p className="mt-6 border-t border-ink/15 pt-5 font-bold">{plan.journalCount} {plan.journalCount === 1 ? "journal" : "journals"} included</p>
+    {plan.features.length > 0 && <ul className="mt-4 space-y-3">
+      {plan.features.map((feature, index) => <li key={index} className="flex gap-3"><span aria-hidden className="font-bold">✓</span><span className="break-words">{feature}</span></li>)}
+    </ul>}
+    <div className="mt-auto pt-8"><PillButton href={`/checkout/${plan._id.toString()}`}>Choose this plan<span className="sr-only">: {plan.name}, ages {plan.ageGroup}</span></PillButton></div>
+  </article>;
 }

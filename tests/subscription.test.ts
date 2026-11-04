@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { subscriptionInputSchema } from "../src/validations/subscription.schema";
+import { toPlanOptions } from "../src/lib/plan-options";
 import { can } from "../src/lib/permissions";
 
 const plan = {
@@ -55,4 +56,31 @@ test("subscription management is restricted to admins", () => {
     assert.equal(can("SUPER_ADMIN", action, "subscriptions"), true);
     assert.equal(can("EDITOR", action, "subscriptions"), false);
   }
+});
+
+
+const published = (id: string, name: string, price: number, durationMonths: number, displayOrder = 0, extra = {}) => ({
+  _id: id, name, price, durationMonths, displayOrder, featured: false, ...extra,
+});
+
+test("plans group into duration tabs, shortest first, each with its own cards", () => {
+  const tabs = toPlanOptions([
+    published("a", "Writing only", 3240, 12, 1),
+    published("b", "Both", 5760, 12, 0, { featured: true, buttonLabel: "Choose both" }),
+    published("c", "Writing only", 370, 1, 0),
+    published("d", "Writing only", 900, 3, 0, { badge: "Save 19%" }),
+  ]);
+  assert.deepEqual(tabs.map((tab) => tab.tab), ["Monthly", "3 months", "12 months"]);
+  assert.deepEqual(tabs[2].cards.map((card) => card.title), ["Both", "Writing only"]);
+  assert.equal(tabs[2].cards[0].buttonLabel, "Choose both");
+  assert.equal(tabs[2].cards[0].highlight, true);
+  assert.equal(tabs[2].cards[1].buttonLabel, "Subscribe now");
+  assert.equal(tabs[2].cards[1].buttonHref, "/checkout/a");
+  assert.equal(tabs[1].cards[0].badge, "Save 19%");
+});
+
+test("a new duration appears on its own and an empty list gives no tabs", () => {
+  assert.deepEqual(toPlanOptions([published("a", "x", 1, 6), published("b", "x", 1, 1)]).map((t) => t.tab), ["Monthly", "6 months"]);
+  assert.equal(toPlanOptions([published("a", "x", 1, 6)])[0].cards[0].period, "6 months");
+  assert.deepEqual(toPlanOptions([]), []);
 });

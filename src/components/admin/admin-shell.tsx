@@ -13,9 +13,7 @@ import {
   HomeIcon,
   DocumentIcon,
   ChatIcon,
-  StethoscopeIcon,
-  HeartPulseIcon,
-  MapPinIcon,
+  PeopleIcon,
   InboxIcon,
   ImageIcon,
   GearIcon,
@@ -28,18 +26,16 @@ import {
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
 const NAV_ICONS: Record<string, IconType> = {
+  ageGroups: PeopleIcon,
   subscriptions: DocumentIcon,
   blog: DocumentIcon,
   testimonials: ChatIcon,
-  team: StethoscopeIcon,
-  services: HeartPulseIcon,
-  locations: MapPinIcon,
   enquiries: InboxIcon,
   media: ImageIcon,
   settings: GearIcon,
 };
 
-const COLLAPSE_KEY = "fysit-admin-sidebar-collapsed";
+const COLLAPSE_KEY = "mindvines-admin-sidebar-collapsed";
 
 export function AdminShell({
   user,

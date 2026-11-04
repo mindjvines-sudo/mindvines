@@ -18,7 +18,7 @@ export function SettingsForm({
   return (
     <Card className="max-w-5xl">
       <form action={formAction} noValidate>
-        <FormSection title="Clinic identity" description="The clinic’s name and tagline.">
+        <FormSection title="Site identity" description="Your site’s name and tagline.">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Site name" htmlFor="siteName" error={errors?.siteName} required>
               <Input
@@ -37,7 +37,7 @@ export function SettingsForm({
 
         <FormSection
           title="Contact details"
-          description="Shown on the website’s Contact page and used for its map. Leave a field blank to use the default."
+          description="How parents can reach you. Leave a field blank to use the default."
         >
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Contact email" htmlFor="contactEmail" error={errors?.contactEmail}>
@@ -53,7 +53,7 @@ export function SettingsForm({
               <Input id="contactPhone" name="contactPhone" type="tel" defaultValue={defaultValues.contactPhone} />
             </Field>
           </div>
-          <Field label="Clinic address" htmlFor="address" error={errors?.address}>
+          <Field label="Address" htmlFor="address" error={errors?.address}>
             <Textarea id="address" name="address" rows={3} defaultValue={defaultValues.address} />
           </Field>
         </FormSection>

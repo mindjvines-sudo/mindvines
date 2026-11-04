@@ -26,6 +26,8 @@ export const subscriptionInputSchema = z.object({
       return false;
     }
   }, "Enter an http(s) URL or a path starting with /"),
+  badge: z.string().trim().max(30).default(""),
+  buttonLabel: z.string().trim().max(40).default(""),
   featured: z.boolean(),
   displayOrder: numberInput(z.number().int().min(0).max(10000)),
   status: z.enum(CONTENT_STATUSES),

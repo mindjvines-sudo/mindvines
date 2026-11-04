@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Nunito_Sans, Onest } from "next/font/google";
+import { Bricolage_Grotesque, Fredoka, Nunito_Sans, Onest } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -26,6 +26,14 @@ const onest = Onest({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-onest",
+});
+
+/** Badges on the age group pages. */
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: "700",
+  display: "swap",
+  variable: "--font-bricolage",
 });
 
 export const metadata: Metadata = {
@@ -77,7 +85,7 @@ export const viewport: Viewport = {
 // chrome. See src/app/layout.tsx for why the split works.
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${fredoka.variable} ${nunitoSans.variable} ${onest.variable} font-sans antialiased`}>
+    <div className={`${fredoka.variable} ${nunitoSans.variable} ${onest.variable} ${bricolage.variable} font-sans antialiased`}>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-amber focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-ink"

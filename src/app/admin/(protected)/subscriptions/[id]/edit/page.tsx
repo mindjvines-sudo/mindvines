@@ -21,7 +21,7 @@ export default async function EditSubscriptionPlanPage({ params }: { params: Pro
     <SubscriptionForm action={updateSubscriptionAction.bind(null, id)} submitLabel="Save changes" defaultValues={{
       name: plan.name, description: plan.description, ageGroup: plan.ageGroup,
       price: plan.price, durationMonths: plan.durationMonths, journalCount: plan.journalCount,
-      features: plan.features, registrationUrl: plan.registrationUrl, featured: plan.featured,
+      features: plan.features, registrationUrl: plan.registrationUrl, badge: plan.badge ?? "", buttonLabel: plan.buttonLabel ?? "", featured: plan.featured,
       displayOrder: plan.displayOrder, status: plan.status,
     }} />
   </div>;

@@ -179,6 +179,102 @@ export const AGE_GROUPS = {
   ],
 } as const;
 
+/** One tab of an age group page's plan switcher. */
+export type PlanCardContent = {
+  title: string;
+  price: number;
+  period: string;
+  badge: string;
+  highlight: boolean;
+  buttonLabel: string;
+  buttonHref: string;
+};
+
+/** One tab of the plan band: a duration and the plans on offer for it. */
+export type PlanOptionContent = {
+  tab: string;
+  cards: PlanCardContent[];
+};
+
+export type PlansSectionContent = {
+  heading: string;
+  intro: string;
+  items: PlanOptionContent[];
+  priceNote: string;
+  footnote: string;
+};
+
+/** A topic cover shown at its own proportions; `outlined` draws the dotted rule mindvines.in puts round some. */
+export type TopicImage = { src: string; alt: string; width: number; height: number; outlined?: boolean };
+
+/** A set of topic covers under its own badge, such as "Ages 9-12 · Writing journals". */
+export type TopicGroup = { badge: string; images: TopicImage[] };
+
+type AgeGroupPageContent = {
+  topics: {
+    heading: string;
+    intro: string;
+    /** One grid under the page's badge (Ages 6–8)… */
+    images: { src: string; alt: string }[];
+    /** …or several, each under its own badge (Ages 9–12). */
+    groups?: TopicGroup[];
+    note: string;
+  };
+};
+
+const AGES_9_12: AgeGroupPageContent = {
+  topics: {
+    heading: "A glimpse of a few topics",
+    intro: "Every journal holds one shared topic. Here's a peek at a few your child might pick a pen and paints for.",
+    images: [],
+    groups: [
+      {
+        badge: "Ages 9-12  · Sketching journals",
+        images: [
+          { src: "/images/topics/design-your-sneaker.png", alt: "Design your sneaker: ideas, colours, patterns, your style", width: 802, height: 1002 },
+          { src: "/images/topics/dancing-in-the-rain.png", alt: "Dancing in the rain", width: 782, height: 1042 },
+          { src: "/images/topics/anime-or-manga-character.png", alt: "Anime or Manga Character", width: 794, height: 994, outlined: true },
+          { src: "/images/topics/nickname-in-doodle-art.png", alt: "Your Nickname in Doodle Art", width: 862, height: 1022 },
+        ],
+      },
+      {
+        badge: "Ages 9-12  · Writing journals",
+        images: [
+          { src: "/images/topics/favourite-ipl-team.png", alt: "Favorite IPL Team: tell us about your favorite IPL team", width: 818, height: 1116 },
+          { src: "/images/topics/cooking-experiments.png", alt: "Your Cooking Experiments", width: 788, height: 1118 },
+          { src: "/images/topics/someone-i-admire.png", alt: "Someone I Admire Who Isn't Famous", width: 804, height: 1108 },
+          { src: "/images/topics/one-crore.png", alt: "If You Had ₹1 Crore, What Would You Buy?", width: 800, height: 1126 },
+        ],
+      },
+    ],
+    note: "...and many more waiting to be discovered",
+  },
+};
+
+/**
+ * An age group page's topics as mindvines.in shows them, by page address.
+ * They stand in until Admin → Age Groups gives the page topic images. Plans
+ * are not here: they come from Admin → Subscriptions.
+ */
+export const AGE_GROUP_PAGES: Record<string, AgeGroupPageContent> = {
+  "ages-6-8": {
+    topics: {
+      heading: "A glimpse of a few topics",
+      intro: "Every journal holds one shared topic. Here's a peek at a few your child might pick up a pencil for.",
+      images: [
+        { src: "/images/topics/wacky-rainbow.png", alt: "Wacky Rainbow, with different doodles in each colour" },
+        { src: "/images/topics/design-a-handbag.png", alt: "Design a Handbag for someone you love" },
+        { src: "/images/topics/my-sports-hero.png", alt: "My Sports Hero" },
+        { src: "/images/topics/colourful-ice-cream-cone.png", alt: "A Colourful Ice cream Cone" },
+      ],
+      note: "...and many more waiting to be discovered",
+    },
+  },
+  // Admin → Age Groups names this page "9-12"; "ages-9-12" matches the 6–8 page's form.
+  "9-12": AGES_9_12,
+  "ages-9-12": AGES_9_12,
+};
+
 /**
  * Each paragraph is a list of runs; `accent` runs render in the tan
  * highlight the founder's note uses for its key lines.

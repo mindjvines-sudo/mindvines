@@ -41,7 +41,7 @@ export function TestimonialForm({
   return (
     <Card className="max-w-5xl">
       <form action={formAction} noValidate>
-        <FormSection title="Patient" description="Who the feedback is from, as it should appear on the website.">
+        <FormSection title="Parent" description="Who the feedback is from, as it should appear on the website.">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Name" htmlFor="authorName" error={errors?.authorName} required className="sm:col-span-2">
               <Input
@@ -52,7 +52,7 @@ export function TestimonialForm({
                 invalid={!!errors?.authorName}
               />
             </Field>
-            <Field label="Designation" htmlFor="authorRole" hint="For example: Marathon runner, Patient">
+            <Field label="Designation" htmlFor="authorRole" hint="For example: Parent of a 9-year-old">
               <Input id="authorRole" name="authorRole" defaultValue={defaultValues?.authorRole} />
             </Field>
             <Field label="Company" htmlFor="company">

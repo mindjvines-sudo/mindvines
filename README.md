@@ -57,7 +57,7 @@ and [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs).
 | `/admin/login` | Sign-in form; login is a Next.js Server Action |
 | `/admin/dashboard` | Enquiry metrics and content summaries |
 | `/admin/subscriptions`, `/admin/enquiries`, `/admin/media`, `/admin/settings` | Active subscription and site management |
-| `/admin/blog`, `/admin/testimonials`, `/admin/doctors`, `/admin/services`, `/admin/locations`, `/admin/pages` | Existing content editors, previews, and search results |
+| `/admin/blog`, `/admin/testimonials`, `/admin/pages` | Existing content editors, previews, and search results |
 | `GET /api/admin/search` | Admin search box |
 | `GET, POST /api/media` | Media listing and uploads |
 | `GET, PATCH, DELETE /api/media/[id]` | Media details, metadata changes, and deletion |

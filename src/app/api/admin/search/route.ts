@@ -5,9 +5,7 @@ import { can } from "@/lib/permissions";
 import { listPagesAdmin } from "@/services/page.service";
 import { listBlogPostsAdmin } from "@/services/blog.service";
 import { listTestimonialsAdmin } from "@/services/testimonial.service";
-import { listDoctorsAdmin } from "@/services/doctor.service";
-import { listServicesAdmin } from "@/services/service.service";
-import { listLocationsAdmin } from "@/services/location.service";
+import { listAgeGroupsAdmin } from "@/services/age-group.service";
 import { listEnquiriesAdmin } from "@/services/enquiry.service";
 
 export type SearchResult = { type: string; label: string; sublabel?: string; href: string };
@@ -62,40 +60,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (can(user.role, "read", "services")) {
+  if (can(user.role, "read", "ageGroups")) {
     searches.push(
-      listServicesAdmin({ search: query, limit: 5 }).then((res) =>
-        res.items.map((item) => ({
-          type: "Service",
-          label: item.name,
-          sublabel: item.status,
-          href: `/admin/services/${item._id}/edit`,
-        }))
-      )
-    );
-  }
-
-  if (can(user.role, "read", "locations")) {
-    searches.push(
-      listLocationsAdmin({ search: query }).then((items) =>
+      listAgeGroupsAdmin({ search: query }).then((items) =>
         items.slice(0, 5).map((item) => ({
-          type: "Location",
-          label: item.name,
+          type: "Age group",
+          label: item.title,
           sublabel: item.status,
-          href: `/admin/locations/${item._id}/edit`,
-        }))
-      )
-    );
-  }
-
-  if (can(user.role, "read", "team")) {
-    searches.push(
-      listDoctorsAdmin({ search: query, limit: 5 }).then((res) =>
-        res.items.map((item) => ({
-          type: "Doctor",
-          label: item.name,
-          sublabel: item.status === "PUBLISHED" ? "ACTIVE" : "INACTIVE",
-          href: `/admin/doctors/${item._id}/edit`,
+          href: `/admin/age-groups/${item._id}/edit`,
         }))
       )
     );

@@ -11,6 +11,10 @@ const subscriptionPlanSchema = new Schema({
   journalCount: { type: Number, required: true, min: 1 },
   features: { type: [String], default: [] },
   registrationUrl: { type: String, default: "" },
+  // Optional label on the plan, such as "Save 27%".
+  badge: { type: String, trim: true, default: "" },
+  // Checkout button on the plan card, such as "Choose writing". Empty means "Subscribe now".
+  buttonLabel: { type: String, trim: true, default: "" },
   featured: { type: Boolean, default: false },
   displayOrder: { type: Number, default: 0 },
   status: { type: String, enum: CONTENT_STATUSES, default: "DRAFT", required: true },

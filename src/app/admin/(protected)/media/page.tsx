@@ -11,7 +11,7 @@ export default async function MediaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Media library" description="Images used in blog posts, services, testimonials and doctor profiles. Images in use can’t be deleted." />
+      <PageHeader title="Media library" description="Images used in age group pages, blog posts and testimonials. Images in use can’t be deleted." />
       <MediaLibrary
         initial={{
           items: JSON.parse(JSON.stringify(result.items)) as MediaItem[],

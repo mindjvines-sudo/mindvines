@@ -37,7 +37,7 @@ export default async function TestimonialsListPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Testimonials"
-        description="Patient feedback shown on the Home and About pages, in the order below."
+        description="Feedback from parents, in the order below."
         actions={
           canCreate && (
             <ButtonLink href="/admin/testimonials/new">
@@ -59,7 +59,7 @@ export default async function TestimonialsListPage({
           <EmptyState
             icon={ChatIcon}
             title="No testimonials yet"
-            description="Add patient feedback to show it on the website. Until then, the built-in testimonials are shown."
+            description="Add feedback from parents."
             action={
               canCreate ? (
                 <ButtonLink href="/admin/testimonials/new">
@@ -74,7 +74,7 @@ export default async function TestimonialsListPage({
             <THead>
               <tr>
                 {canPublish && <Th className="w-[88px]">Order</Th>}
-                <Th>Patient</Th>
+                <Th>Parent</Th>
                 <Th hideBelow="lg">Testimonial</Th>
                 <Th hideBelow="md">Rating</Th>
                 <Th>Status</Th>

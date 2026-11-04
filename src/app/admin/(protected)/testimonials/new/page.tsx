@@ -11,7 +11,7 @@ export default function NewTestimonialPage() {
       <PageHeader
         back={{ href: "/admin/testimonials", label: "All testimonials" }}
         title="Add testimonial"
-        description="Share a patient’s experience on the website."
+        description="Share a parent’s experience."
       />
       <TestimonialForm action={createTestimonialAction} submitLabel="Create testimonial" />
     </div>

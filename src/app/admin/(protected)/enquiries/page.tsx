@@ -38,7 +38,7 @@ export default async function EnquiriesListPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Enquiries"
-        description="Messages and appointment requests sent from the website’s Contact page."
+        description="Messages parents send from the website’s contact form."
       />
 
       <Card className="overflow-hidden">
@@ -65,7 +65,7 @@ export default async function EnquiriesListPage({
             description={
               search || status
                 ? "Try a different search or status filter."
-                : "Messages sent from the website’s Contact page will appear here."
+                : "Messages sent from the website’s contact form will appear here."
             }
             action={
               search || status ? (
@@ -80,9 +80,9 @@ export default async function EnquiriesListPage({
           <Table minWidth={0}>
             <THead>
               <tr>
-                <Th>Patient</Th>
-                <Th hideBelow="sm">Request</Th>
-                <Th hideBelow="lg">Preferred date</Th>
+                <Th>Name</Th>
+                <Th hideBelow="sm">Enquiry</Th>
+                <Th hideBelow="lg">Child&apos;s age</Th>
                 <Th>Status</Th>
                 <Th hideBelow="md">Received</Th>
                 <Th align="right">
@@ -108,14 +108,12 @@ export default async function EnquiriesListPage({
                   </Td>
                   <Td hideBelow="sm">
                     <span className="block max-w-[260px] truncate text-slate-700">
-                      {item.department || item.subject || "General enquiry"}
+                      {item.subject || "General enquiry"}
                     </span>
-                    <span className="block max-w-[260px] truncate text-xs text-slate-400">
-                      {item.doctor || item.phone || "—"}
-                    </span>
+                    <span className="block max-w-[260px] truncate text-xs text-slate-400">{item.phone || "—"}</span>
                   </Td>
                   <Td hideBelow="lg" className="tabular-nums">
-                    {item.preferredDate ? formatDate(`${item.preferredDate}T00:00:00`) : "—"}
+                    {item.childAge || "—"}
                   </Td>
                   <Td>
                     <StatusBadge status={item.status} kind="enquiry" />

@@ -27,7 +27,7 @@ export function SubscriptionForm({ action, defaultValues, submitLabel }: {
   return (
     <Card className="max-w-5xl">
       <form onSubmit={submit} noValidate>
-        <FormSection title="Plan details" description="Describe the journal programme parents can choose for their child.">
+        <FormSection title="Plan details" description="Describe the journal programme parents can choose for their child. Plans of the same age group and duration appear side by side, so name each one for what it offers (for example “Writing only”).">
           <Field label="Plan name" htmlFor="name" error={errors?.name} required>
             <Input id="name" name="name" maxLength={120} defaultValue={defaultValues?.name} invalid={!!errors?.name} required />
           </Field>
@@ -56,7 +56,13 @@ export function SubscriptionForm({ action, defaultValues, submitLabel }: {
           <Field label="Benefits" htmlFor="features" error={errors?.features} hint="One benefit per line. Up to 20 benefits, 200 characters each.">
             <Textarea id="features" name="features" rows={5} defaultValue={defaultValues?.features.join("\n")} invalid={!!errors?.features} placeholder={"Doorstep pickup and delivery\nEvery entry reviewed"} />
           </Field>
-          <Field label="Registration link" htmlFor="registrationUrl" error={errors?.registrationUrl} hint="Optional. Leave blank to use the existing Mindvines registration page.">
+          <Field label="Badge" htmlFor="badge" error={errors?.badge} hint="Optional label on the plan card, such as “Save 27%”.">
+            <Input id="badge" name="badge" maxLength={30} defaultValue={defaultValues?.badge} invalid={!!errors?.badge} placeholder="Save 27%" />
+          </Field>
+          <Field label="Button label" htmlFor="buttonLabel" error={errors?.buttonLabel} hint="Optional text on the plan's button, such as “Choose writing”. Leave empty for “Subscribe now”.">
+            <Input id="buttonLabel" name="buttonLabel" maxLength={40} defaultValue={defaultValues?.buttonLabel} invalid={!!errors?.buttonLabel} placeholder="Subscribe now" />
+          </Field>
+          <Field label="Registration link" htmlFor="registrationUrl" error={errors?.registrationUrl} hint="No longer used: plans are bought through the website's checkout.">
             <Input id="registrationUrl" name="registrationUrl" maxLength={2000} defaultValue={defaultValues?.registrationUrl} invalid={!!errors?.registrationUrl} placeholder="https://… or /registration" />
           </Field>
         </FormSection>

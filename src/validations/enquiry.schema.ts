@@ -10,16 +10,6 @@ export const enquiryInputSchema = z.object({
     .optional()
     .or(z.literal("")),
   subject: z.string().trim().max(150).optional(),
-  // Appointment details from the Contact page form; all optional so a
-  // plain message still goes through.
-  department: z.string().trim().max(120).optional(),
-  doctor: z.string().trim().max(120).optional(),
-  preferredDate: z
-    .string()
-    .trim()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a valid date")
-    .optional()
-    .or(z.literal("")),
   // The home page "Let's Connect" form asks for the child's age and, like
   // the live site, leaves the message optional.
   childAge: z.string().trim().max(20).optional(),

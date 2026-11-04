@@ -9,6 +9,8 @@ const siteSettingsSchema = new Schema(
     contactEmail: { type: String, trim: true },
     contactPhone: { type: String, trim: true },
     address: { type: String, trim: true },
+    // The heading above the homepage's age group cards, set under Admin → Age Groups.
+    ageGroupsHeading: { type: String, trim: true },
     socialLinks: {
       type: Map,
       of: String,
