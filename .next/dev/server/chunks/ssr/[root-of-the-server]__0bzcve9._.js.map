@@ -1,8 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 13, "column": 0}, "map": {"version":3,"sources":["file:///Users/test/Desktop/inbounderz/nextjs/mindwines/src/app/apple-icon.png.mjs%20(structured%20image%20object)"],"sourcesContent":["import src from \"IMAGE\";\nexport default { src, width: 180, height: 180 }\n"],"names":["src","width","height"],"mappings":";;;;AAAA;;uCACe;IAAEA,KAAAA,gJAAG;IAAEC,OAAO;IAAKC,QAAQ;AAAI"}},
-    {"offset": {"line": 31, "column": 0}, "map": {"version":3,"sources":["file:///Users/test/Desktop/inbounderz/nextjs/mindwines/src/app/favicon.ico.mjs%20(structured%20image%20object)"],"sourcesContent":["import src from \"IMAGE\";\nexport default { src, width: 48, height: 48 }\n"],"names":["src","width","height"],"mappings":";;;;AAAA;;uCACe;IAAEA,KAAAA,0IAAG;IAAEC,OAAO;IAAIC,QAAQ;AAAG"}},
-    {"offset": {"line": 49, "column": 0}, "map": {"version":3,"sources":["file:///Users/test/Desktop/inbounderz/nextjs/mindwines/src/app/icon.png.mjs%20(structured%20image%20object)"],"sourcesContent":["import src from \"IMAGE\";\nexport default { src, width: 512, height: 512 }\n"],"names":["src","width","height"],"mappings":";;;;AAAA;;uCACe;IAAEA,KAAAA,uIAAG;IAAEC,OAAO;IAAKC,QAAQ;AAAI"}}]
-}

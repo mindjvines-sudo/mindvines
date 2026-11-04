@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Next.js and build output
+/.next/
+/out/
+/build/
+/dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local environment variables (keep safe examples versioned)
+.env*
+!.env.example
+!.env.*.example
+!.env.template
+!.env.*.template
+
+# Logs and caches
+*.log
+.eslintcache
+/.cache/
+
+# Test output
+/coverage/
+/playwright-report/
+/test-results/
+
+# Local deployment settings
+/.vercel/
+
+# OS and editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~

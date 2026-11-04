@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { SubscriptionPlans, SubscriptionPlansLoading } from "@/components/sections/SubscriptionPlans";
 import { siteConfig } from "@/config/site";
 import { buildMetadata } from "@/lib/seo";
 import { AgeGroups } from "@/components/sections/AgeGroups";
@@ -54,6 +56,7 @@ export default function HomePage() {
       <MoreThanJournal />
       <WhatGrows />
       <AgeGroups />
+      <Suspense fallback={<SubscriptionPlansLoading />}><SubscriptionPlans /></Suspense>
       <FounderNote />
       <Faq />
       <Contact />

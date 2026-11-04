@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "test:subscriptions": "tsx --test tests/subscription.test.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",

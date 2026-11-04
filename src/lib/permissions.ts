@@ -1,6 +1,7 @@
 import { Role } from "@/lib/constants";
 
 export const RESOURCES = [
+  "subscriptions",
   "pages",
   "services",
   "projects",
@@ -41,6 +42,7 @@ const CONTENT_RESOURCES: Resource[] = [
 // spec §11: "Submit content for publishing" rather than publishing directly.
 const MATRIX: Record<Exclude<Role, "SUPER_ADMIN">, Partial<Record<Resource, Action[]>>> = {
   ADMIN: {
+    subscriptions: ["create", "read", "update", "delete", "publish"],
     ...Object.fromEntries(
       CONTENT_RESOURCES.map((resource) => [resource, ["create", "read", "update", "delete", "publish"]])
     ),

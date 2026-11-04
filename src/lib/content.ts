@@ -1,7 +1,7 @@
 /**
  * Copy and assets for the public site, transcribed from mindvines.in.
- * The site is a single scrolling page; section ids below are the anchors
- * the menu links to.
+ * Section ids below are the homepage anchors the menu links to.
+ * Subscription plan content is managed separately in the admin.
  */
 
 /** Pages that live on the current Wix site and have no counterpart here yet. */
@@ -33,7 +33,7 @@ export type MenuItem =
   | { label: string; href?: never; children: { label: string; href: string }[] };
 
 export const MENU: MenuItem[] = [
-  { label: "How it Works", href: `#${SECTION_IDS.howItWorks}` },
+  { label: "How it Works", href: `/#${SECTION_IDS.howItWorks}` },
   {
     label: "A Glimpse of few topics",
     children: [
@@ -44,12 +44,12 @@ export const MENU: MenuItem[] = [
   {
     label: "Subscription plans",
     children: [
-      { label: "Ages 6-8", href: `${LIVE}/blank-5#ages-6-8` },
-      { label: "Ages 9-12", href: `${LIVE}/blank-5-1-1#ages-9-12` },
+      { label: "Ages 6-8", href: "/subscriptions#ages-6-8" },
+      { label: "Ages 9-12", href: "/subscriptions#ages-9-12" },
     ],
   },
-  { label: "FAQ", href: `#${SECTION_IDS.faq}` },
-  { label: "Contact us", href: `#${SECTION_IDS.contact}` },
+  { label: "FAQ", href: `/#${SECTION_IDS.faq}` },
+  { label: "Contact us", href: `/#${SECTION_IDS.contact}` },
   { label: "Registration", href: `${LIVE}/blank-6` },
 ];
 
@@ -166,14 +166,14 @@ export const AGE_GROUPS = {
       title: "Ages 6–8",
       subtitle: "Sketching journals",
       body: "At this age, drawing is a joyful way to explore a shared topic. Let the sketches flow, one topic at a time.",
-      href: `${LIVE}/blank-5`,
+      href: "/subscriptions#ages-6-8",
       image: { src: "/images/ages-6-8.png", width: 736, height: 724, alt: "A child colouring with a red pencil" },
     },
     {
       title: "Ages 9–12",
       subtitle: "Writing and Sketching journals",
       body: "Choose writing journals, sketching journals, or both. Every journal revolves around one shared topic.",
-      href: `${LIVE}/blank-5-1-1`,
+      href: "/subscriptions#ages-9-12",
       image: { src: "/images/ages-9-12.png", width: 728, height: 690, alt: "A child writing in a lined journal" },
     },
   ],

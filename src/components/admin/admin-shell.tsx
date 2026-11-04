@@ -28,6 +28,7 @@ import {
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
 const NAV_ICONS: Record<string, IconType> = {
+  subscriptions: DocumentIcon,
   blog: DocumentIcon,
   testimonials: ChatIcon,
   team: StethoscopeIcon,

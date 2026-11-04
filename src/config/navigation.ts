@@ -1,8 +1,7 @@
 import type { Resource } from "@/lib/permissions";
 
-// Public-site navigation lives in the design itself (components/layout/Header.tsx,
-// NAV_ITEMS in @/lib/content) — the site is a single scrolling page with anchor
-// links, not a set of separate routes, so there is no public nav config here.
+// Public-site navigation lives in components/layout/Header.tsx and MENU in
+// @/lib/content. This file defines the admin sidebar.
 
 export type AdminNavGroup = "Patient care" | "Website content" | "System";
 
@@ -14,6 +13,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = ["Patient care", "Website conte
 // `resource` maps to lib/permissions.ts so the admin layout can filter this
 // list down to what the signed-in user's role is actually allowed to see.
 export const adminNavigation: AdminNavItem[] = [
+  { label: "Subscriptions", href: "/admin/subscriptions", resource: "subscriptions", group: "Website content" },
   { label: "Enquiries", href: "/admin/enquiries", resource: "enquiries", group: "Patient care" },
   { label: "Testimonials", href: "/admin/testimonials", resource: "testimonials", group: "Patient care" },
   { label: "Doctors", href: "/admin/doctors", resource: "team", group: "Website content" },
