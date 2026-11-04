@@ -33,7 +33,3 @@ export async function authenticate(email: string, password: string): Promise<Aut
     role: user.role as Role,
   };
 }
-
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
-}

@@ -35,8 +35,6 @@ export function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-export type TrendStat = { value: number; delta: number };
-
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   const units = ["KB", "MB", "GB"];
@@ -47,32 +45,4 @@ export function formatBytes(bytes: number): string {
     unitIndex += 1;
   }
   return `${value.toFixed(1)} ${units[unitIndex]}`;
-}
-
-/**
- * Post dates render identically on every request and in every timezone, so
- * they are formatted in UTC rather than the server's local zone. `long` is
- * the byline format ("September 12, 2025"); `short` is the sidebar's.
- */
-export function formatPostDate(
-  value: Date | string | null | undefined,
-  style: "long" | "short" = "long",
-): string | null {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: style === "long" ? "long" : "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
-}
-
-/** The `datetime` attribute value for a `<time>` element. */
-export function toDateTimeAttr(value: Date | string | null | undefined): string | undefined {
-  if (!value) return undefined;
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }

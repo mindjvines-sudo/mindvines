@@ -10,5 +10,3 @@ export const seoInputSchema = z.object({
   ogImage: z.string().trim().optional(),
   robots: z.string().trim().optional(),
 });
-
-export type SeoInput = z.infer<typeof seoInputSchema>;

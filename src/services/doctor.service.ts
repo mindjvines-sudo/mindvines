@@ -30,11 +30,6 @@ export async function getDoctorByIdAdmin(id: string) {
   return Doctor.findById(id).populate("photo").lean();
 }
 
-export async function listActiveDoctors(limit = 24) {
-  await connectToDatabase();
-  return Doctor.find({ status: "PUBLISHED" }).populate("photo").sort({ displayOrder: 1 }).limit(limit).lean();
-}
-
 export async function createDoctor(input: DoctorInput) {
   await connectToDatabase();
   // After the highest position, not at the count: once a doctor is deleted the

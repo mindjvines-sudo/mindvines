@@ -31,13 +31,14 @@ export const verifySession = cache(async (): Promise<{ userId: string; role: Rol
 
 // Secure check backed by the database — use this wherever the caller needs
 // up-to-date role/active-status data rather than trusting the cookie alone.
-export const getCurrentUser = cache(async (): Promise<SafeUser> => {
-  const session = await verifySession();
+export const getAuthenticatedUser = cache(async (): Promise<SafeUser | null> => {
+  const session = await decryptSession(await readSessionCookie());
+  if (!session?.userId) return null;
   await connectToDatabase();
 
   const user = await User.findById(session.userId).lean();
   if (!user || !user.isActive) {
-    redirect("/admin/login");
+    return null;
   }
 
   return {
@@ -46,4 +47,10 @@ export const getCurrentUser = cache(async (): Promise<SafeUser> => {
     email: user.email,
     role: user.role as Role,
   };
+});
+
+export const getCurrentUser = cache(async (): Promise<SafeUser> => {
+  const user = await getAuthenticatedUser();
+  if (!user) redirect("/admin/login");
+  return user;
 });

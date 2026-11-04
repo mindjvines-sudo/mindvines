@@ -2,6 +2,7 @@ import "server-only";
 import { connectToDatabase } from "@/lib/mongodb";
 import { AuditLog } from "@/models/AuditLog";
 import type { AuditAction } from "@/lib/constants";
+import { reportAuthFailure } from "@/lib/auth-errors";
 
 export async function listRecentAuditLogs(limit = 10) {
   await connectToDatabase();
@@ -23,4 +24,13 @@ export async function logAction(params: {
     entityId: params.entityId,
     metadata: params.metadata,
   });
+}
+
+/** An audit write failure must not prevent a user from signing in or out. */
+export async function logAuthenticationEvent(params: Parameters<typeof logAction>[0]): Promise<void> {
+  try {
+    await logAction(params);
+  } catch (error) {
+    reportAuthFailure("audit", error);
+  }
 }

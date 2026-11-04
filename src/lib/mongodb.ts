@@ -1,7 +1,7 @@
 import "server-only";
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI?.trim();
 
 type MongooseCache = {
   conn: typeof mongoose | null;
@@ -23,12 +23,13 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   }
 
   if (!MONGODB_URI) {
-    throw new Error("MONGODB_URI is not set. Add it to your .env.local file.");
+    throw new Error("MONGODB_URI is not set in the server environment.");
   }
 
   if (!cache.promise) {
     cache.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 10000,
     });
   }
 

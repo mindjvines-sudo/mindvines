@@ -124,23 +124,6 @@ export function ExternalLinkIcon(props: IconProps) {
   );
 }
 
-export function LeafIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="M5 19c9 0 14-5 14-14-9 0-14 5-14 14Z" strokeLinejoin="round" />
-      <path d="M5 19c0-5 2-8 6-10" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-export function ArrowRightIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="M4 12h16M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 export function ChevronRightIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
@@ -154,14 +137,6 @@ export function ClockIcon(props: IconProps) {
     <svg {...base(props)}>
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 7.5V12l3 2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-export function TrendUpIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="m4 15 6-6 4 4 6-7M20 6h-4M20 6v4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -311,14 +286,6 @@ export function SidebarIcon(props: IconProps) {
     <svg {...base(props)}>
       <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
       <path d="M9.5 4.5v15" />
-    </svg>
-  );
-}
-
-export function ArrowUpRightIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path d="M7 17 17 7M8.5 7H17v8.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

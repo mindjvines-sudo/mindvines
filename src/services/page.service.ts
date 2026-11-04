@@ -62,28 +62,6 @@ export async function getPageByIdAdmin(id: string) {
   return Page.findById(id).lean();
 }
 
-// --- Public query: published only, never exposes createdBy/updatedBy ---
-
-export async function getPublishedPageBySlug(slug: string) {
-  await connectToDatabase();
-  const page = await Page.findOne({
-    slug,
-    status: "PUBLISHED",
-    publishedAt: { $lte: new Date() },
-  })
-    .select("-createdBy -updatedBy")
-    .lean();
-
-  return page;
-}
-
-export async function listPublishedPages() {
-  await connectToDatabase();
-  return Page.find({ status: "PUBLISHED", publishedAt: { $lte: new Date() } })
-    .select("slug updatedAt")
-    .lean();
-}
-
 // --- Mutations ---
 
 export async function createPage(input: PageInput, userId: string) {

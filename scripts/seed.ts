@@ -18,9 +18,12 @@ async function main() {
     throw new Error("MONGODB_URI is not set. Add it to your .env.local file.");
   }
 
-  const name = process.env.SEED_ADMIN_NAME ?? "Super Admin";
-  const email = process.env.SEED_ADMIN_EMAIL ?? "admin@fysit.local";
-  const password = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe123!";
+  const name = process.env.SEED_ADMIN_NAME ?? "Mindvines Admin";
+  const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD;
+  if (!email || !password) {
+    throw new Error("Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD before running the seed command.");
+  }
 
   await mongoose.connect(mongoUri);
 
@@ -38,7 +41,7 @@ async function main() {
     isActive: true,
   });
 
-  console.log(`Seeded SUPER_ADMIN user: ${email} / ${password}`);
+  console.log(`Seeded SUPER_ADMIN user: ${email}`);
   console.log("Change this password after first login.");
   process.exit(0);
 }

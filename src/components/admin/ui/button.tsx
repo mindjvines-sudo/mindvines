@@ -50,24 +50,3 @@ type ButtonLinkProps = React.ComponentProps<typeof Link> & {
 export function ButtonLink({ variant, size, className, ...props }: ButtonLinkProps) {
   return <Link className={buttonClasses({ variant, size, className })} {...props} />;
 }
-
-/** Square icon-only button; `label` becomes its accessible name and tooltip. */
-export function IconButton({
-  label,
-  className,
-  type = "button",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
-  return (
-    <button
-      type={type}
-      aria-label={label}
-      title={label}
-      className={cn(
-        "inline-flex size-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 [&_svg]:size-5",
-        className,
-      )}
-      {...props}
-    />
-  );
-}

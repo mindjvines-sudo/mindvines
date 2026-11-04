@@ -7,7 +7,7 @@ const secret = process.env.SESSION_SECRET;
 
 function getEncodedKey(): Uint8Array {
   if (!secret) {
-    throw new Error("SESSION_SECRET is not set. Add it to your .env.local file.");
+    throw new Error("SESSION_SECRET is not set in the server environment.");
   }
   return new TextEncoder().encode(secret);
 }

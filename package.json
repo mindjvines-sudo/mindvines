@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
-    "test:subscriptions": "tsx --test tests/subscription.test.ts"
+    "test:subscriptions": "tsx --test tests/subscription.test.ts",
+    "test:auth": "tsx --conditions=react-server --test tests/auth.test.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",
@@ -28,7 +29,6 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
-    "swiper": "^14.2.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

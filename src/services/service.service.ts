@@ -6,11 +6,6 @@ import { getPagination, totalPages } from "@/lib/utils";
 import type { ContentStatus } from "@/lib/constants";
 import type { ServiceInput } from "@/validations/service.schema";
 
-const PUBLISHED = { status: "PUBLISHED" as const };
-
-/** Card fields for the listing page and the related-services row. */
-const CARD_FIELDS = "name slug tagline shortDescription icon image displayOrder";
-
 export async function listServicesAdmin(params: {
   page?: string | number;
   limit?: string | number;
@@ -58,25 +53,6 @@ export async function isServiceSlugTaken(slug: string, excludeId?: string) {
   const filter: Record<string, unknown> = { slug };
   if (excludeId) filter._id = { $ne: excludeId };
   return Boolean(await Service.exists(filter));
-}
-
-export async function listPublishedServices() {
-  await connectToDatabase();
-  return Service.find(PUBLISHED).select(CARD_FIELDS).populate("image").sort({ displayOrder: 1 }).lean();
-}
-
-export async function getPublishedServiceBySlug(slug: string) {
-  await connectToDatabase();
-  return Service.findOne({ slug, ...PUBLISHED })
-    .populate("image")
-    .populate("bannerImage")
-    .select("-createdBy -updatedBy")
-    .lean();
-}
-
-export async function listPublishedServiceSlugs() {
-  await connectToDatabase();
-  return Service.find(PUBLISHED).select("slug updatedAt").lean();
 }
 
 function toDocument(input: ServiceInput) {

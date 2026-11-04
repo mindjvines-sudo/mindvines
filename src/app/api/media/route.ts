@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/dal";
+import { getAuthenticatedUser } from "@/lib/dal";
 import { can } from "@/lib/permissions";
 import { validateImageFile } from "@/lib/media-validation";
 import { logAction } from "@/services/audit.service";
 import * as mediaService from "@/services/media.service";
 
 export async function GET(request: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getAuthenticatedUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!can(user.role, "read", "media")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -23,7 +24,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getAuthenticatedUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!can(user.role, "create", "media")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

@@ -30,15 +30,6 @@ export async function getTestimonialByIdAdmin(id: string) {
   return Testimonial.findById(id).populate("image").lean();
 }
 
-export async function listActiveTestimonials(limit = 10) {
-  await connectToDatabase();
-  return Testimonial.find({ status: "PUBLISHED" })
-    .populate("image")
-    .sort({ displayOrder: 1 })
-    .limit(limit)
-    .lean();
-}
-
 export async function createTestimonial(input: TestimonialInput) {
   await connectToDatabase();
   const count = await Testimonial.countDocuments();

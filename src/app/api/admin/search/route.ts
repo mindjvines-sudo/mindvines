@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/dal";
+import { getAuthenticatedUser } from "@/lib/dal";
 import { can } from "@/lib/permissions";
 import { listPagesAdmin } from "@/services/page.service";
 import { listBlogPostsAdmin } from "@/services/blog.service";
@@ -13,7 +13,8 @@ import { listEnquiriesAdmin } from "@/services/enquiry.service";
 export type SearchResult = { type: string; label: string; sublabel?: string; href: string };
 
 export async function GET(request: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getAuthenticatedUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const query = request.nextUrl.searchParams.get("q")?.trim();
 
   if (!query || query.length < 2) {

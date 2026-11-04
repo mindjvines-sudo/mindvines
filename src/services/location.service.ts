@@ -30,16 +30,6 @@ export async function isLocationSlugTaken(slug: string, excludeId?: string) {
   return Boolean(await Location.exists(filter));
 }
 
-export async function listPublishedLocations() {
-  await connectToDatabase();
-  return Location.find({ status: "PUBLISHED" }).populate([...IMAGE_FIELDS]).sort({ displayOrder: 1 }).lean();
-}
-
-export async function listPublishedLocationSlugs() {
-  await connectToDatabase();
-  return Location.find({ status: "PUBLISHED" }).select("slug updatedAt").lean();
-}
-
 /** Empty image pickers post "", which must clear the reference rather than store it. */
 function toDocument(input: LocationInput) {
   return {
