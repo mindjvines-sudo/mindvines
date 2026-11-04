@@ -22,8 +22,10 @@ function niceMax(max: number): number {
   return Math.ceil(max / step) * step;
 }
 
+// These are calendar-day buckets. Fix the locale and timezone so SSR and
+// browser hydration produce the same labels regardless of the viewer's settings.
 const shortDate = (iso: string) =>
-  new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", { month: "short", day: "numeric", timeZone: "UTC" });
 
 /** Area chart of daily enquiries with a hover/focus tooltip. */
 export function EnquiriesChart({ data, label = "Enquiries per day" }: { data: Point[]; label?: string }) {
@@ -183,10 +185,11 @@ export function EnquiriesChart({ data, label = "Enquiries per day" }: { data: Po
             {hovered.count} {hovered.count === 1 ? "enquiry" : "enquiries"}
           </p>
           <p className="text-white/70">
-            {new Date(`${hovered.date}T00:00:00`).toLocaleDateString(undefined, {
+            {new Date(`${hovered.date}T00:00:00Z`).toLocaleDateString("en-IN", {
               weekday: "short",
               month: "short",
               day: "numeric",
+              timeZone: "UTC",
             })}
           </p>
         </div>
