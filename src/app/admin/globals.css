@@ -1,0 +1,97 @@
+@import "tailwindcss";
+/*
+ * Bare-specifier resolution (`@plugin "@tailwindcss/typography"`) fails under
+ * Turbopack for this package: it ships only a "main" field, no "exports" map,
+ * and Turbopack's CSS-level plugin resolver (unlike Node's require.resolve)
+ * doesn't fall back to "main" for bare specifiers. A relative path bypasses
+ * that resolver entirely, so it works regardless.
+ */
+@plugin "../../../node_modules/@tailwindcss/typography";
+
+:root {
+  --background: #f4f7fb;
+  --foreground: #0f172a;
+}
+
+/*
+ * Admin design tokens. `primary` is built around the brand teal (#43C2D1,
+ * primary-400) but buttons, links and active states use primary-600/700 so
+ * white text on them clears WCAG AA. `navy` is the brand ink used for
+ * headings; `accent` is the logo's violet, used sparingly in charts.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-admin-sans);
+
+  --color-primary-50: #ecfafc;
+  --color-primary-100: #d0f2f6;
+  --color-primary-200: #a4e4ec;
+  --color-primary-300: #6fd1de;
+  --color-primary-400: #43c2d1;
+  --color-primary-500: #1fa5b6;
+  --color-primary-600: #0f8696;
+  --color-primary-700: #0c6c7a;
+  --color-primary-800: #0d5864;
+  --color-primary-900: #0f4952;
+
+  --color-navy-700: #26366b;
+  --color-navy-800: #1a2a5e;
+  --color-navy-900: #0f1e4c;
+
+  --color-accent-100: #e9e9f6;
+  --color-accent-500: #7070b1;
+  --color-accent-600: #5c5c9e;
+
+  --color-surface: #f4f7fb;
+  --color-line: #e4e9f0;
+
+  --shadow-card: 0 1px 2px rgb(15 30 76 / 0.04), 0 1px 3px rgb(15 30 76 / 0.04);
+  --shadow-pop: 0 12px 32px -8px rgb(15 30 76 / 0.18), 0 2px 6px rgb(15 30 76 / 0.06);
+}
+
+/*
+ * Every admin component is built for a light surface with no dark: variants.
+ * Letting --foreground flip on prefers-color-scheme: dark left text (and
+ * anything relying on inherited color, like plain <input>/<textarea>/
+ * <select> elements) nearly invisible, so the admin stays light-on-light
+ * regardless of OS preference until it ships a dark theme.
+ */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-admin-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01";
+}
+
+@layer base {
+  /* One focus ring for every interactive element in the admin. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+  }
+
+  /* Native selects get the same chevron everywhere. */
+  select.admin-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.6rem center;
+    background-repeat: no-repeat;
+    background-size: 1.1rem;
+    padding-right: 2.25rem;
+  }
+
+  dialog::backdrop {
+    background: rgb(15 23 42 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

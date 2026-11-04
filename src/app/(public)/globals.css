@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — sampled from the live mindvines.in render.
+   The site sets its headings in VAG Rounded Next (a commercial face); Fredoka
+   is the closest rounded match on Google Fonts. Body copy is Nunito Sans and
+   the menu and form use Onest, as on the live site.
+--------------------------------------------------------------------------- */
+/* `inline` so the utilities read next/font's variables where they're set (the
+   public layout's wrapper), rather than resolving them once at :root. */
+@theme inline {
+  --font-sans: var(--font-nunito-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fredoka), ui-rounded, ui-sans-serif, system-ui, sans-serif;
+  --font-ui: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  /* Text */
+  --color-ink: #4d3f32;
+  --color-tan: #b58c61;
+  --color-amber: #f0a500;
+  --color-blue: #2b5ba8;
+  --color-cocoa: #6a543d;
+
+  /* Surfaces */
+  --color-cream: #fcf5e5;
+  --color-paper: #fdf9f2;
+  --color-stone: #ebe6df;
+  --color-butter: #fff0b9;
+  --color-sheet: #f8f5f0;
+  --color-card: #f9f3eb;
+  --color-field-line: #d6d0c7;
+
+  /* Elevation */
+  --shadow-card: 0 14px 30px -12px rgb(77 63 50 / 0.18);
+  /* The live site's buttons sit on a hard ink edge offset down-right. */
+  --shadow-pressed: 2px 4px 0 0 var(--color-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    /* Anchored sections clear the sticky header. */
+    scroll-padding-top: 88px;
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      scroll-padding-top: 126px;
+    }
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+@layer utilities {
+  /* Section headings: 54.6px on the 1440 render. */
+  .fluid-heading {
+    font-size: clamp(2.125rem, 3.8vw, 3.5rem);
+    line-height: 1.15;
+  }
+
+  /*
+    The founder's note is a page torn from a spiral notebook: a column of
+    punched holes down the left edge, each with a shadowed rim and a rip out
+    to the edge, repeating every 88px however long the note runs.
+  */
+  .notebook-holes {
+    background-image:
+      radial-gradient(circle at 47px 46px, var(--color-butter) 0 20px, transparent 21px),
+      linear-gradient(to bottom, transparent 40px, var(--color-butter) 40px 52px, transparent 52px),
+      radial-gradient(circle at 44px 43px, rgb(77 63 50 / 0.55) 0 21.5px, transparent 23px);
+    background-size:
+      100% 88px,
+      47px 88px,
+      100% 88px;
+    background-repeat: repeat-y;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion — reveals resolve to their end state.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

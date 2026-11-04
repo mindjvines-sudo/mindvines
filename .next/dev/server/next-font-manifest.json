@@ -1,0 +1,16 @@
+{
+  "app": {
+    "[project]/src/app/(public)/page": [
+      "static/media/5d52bd6c4cb3f315-s.p.0ez3bnoxb63ra.woff2",
+      "static/media/6ee082a4ab9ffb69-s.p.1ds2h7-smqbdu.woff2",
+      "static/media/f141b5b7abe57afc-s.p.380f-mwhk0aej.woff2",
+      "static/media/8800dfc60902df36-s.p.2sla2yow9-9p_.woff2"
+    ],
+    "[project]/src/app/admin/login/page": [
+      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}
