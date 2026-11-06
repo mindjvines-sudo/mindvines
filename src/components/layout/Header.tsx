@@ -4,14 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { MENU, SITE, type MenuItem } from "@/lib/content";
+import { SITE, type MenuItem } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 /**
  * The live site's header: a cream bar pinned to the top, the logo centred
  * and a hamburger on the left that slides the menu in from the left edge.
  */
-export function Header() {
+export function Header({ menu }: { menu: MenuItem[] }) {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   // Stable, so the drawer's open-state effect doesn't re-run on every render.
@@ -53,12 +53,12 @@ export function Header() {
         </div>
       </header>
 
-      <MenuDrawer open={open} onClose={close} />
+      <MenuDrawer menu={menu} open={open} onClose={close} />
     </>
   );
 }
 
-function MenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+function MenuDrawer({ menu, open, onClose }: { menu: MenuItem[]; open: boolean; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   // While open: Escape closes, the page behind stops scrolling, and focus
@@ -111,7 +111,7 @@ function MenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
         </button>
 
         <ul className="mt-[22px] pb-10">
-          {MENU.map((item) => (
+          {menu.map((item) => (
             <MenuEntry key={item.label} item={item} onNavigate={onClose} />
           ))}
         </ul>

@@ -2,6 +2,7 @@ import "server-only";
 import { connectToDatabase } from "@/lib/mongodb";
 import { SiteSettings } from "@/models/SiteSettings";
 import { siteConfig } from "@/config/site";
+import { DEFAULT_SUBSCRIBER_NOTIFICATION_EMAIL } from "@/config/email";
 import type { SettingsInput } from "@/validations/settings.schema";
 
 export async function getSiteSettings() {
@@ -15,9 +16,17 @@ export async function getSiteSettings() {
     siteName: siteConfig.name,
     tagline: siteConfig.tagline,
     contactEmail: "",
+    subscriberNotificationEmail: "",
     contactPhone: "",
     address: "",
   };
+}
+
+/** Blank or missing settings always use the subscriber alert inbox. */
+export async function getSubscriberNotificationEmail() {
+  await connectToDatabase();
+  const settings = await SiteSettings.findOne().select("subscriberNotificationEmail").lean();
+  return settings?.subscriberNotificationEmail?.trim() || DEFAULT_SUBSCRIBER_NOTIFICATION_EMAIL;
 }
 
 /** The heading above the homepage's age group cards; empty means the built-in one. */

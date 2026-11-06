@@ -23,6 +23,8 @@ export async function updateSettingsAction(_prev: SettingsFormState, formData: F
     siteName: formData.get("siteName"),
     tagline: formData.get("tagline") || undefined,
     contactEmail: formData.get("contactEmail") || undefined,
+    // Persist an empty string so clearing a saved address restores the default.
+    subscriberNotificationEmail: formData.get("subscriberNotificationEmail") ?? "",
     contactPhone: formData.get("contactPhone") || undefined,
     address: formData.get("address") || undefined,
   });

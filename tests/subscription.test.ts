@@ -11,6 +11,7 @@ const plan = {
   price: "1499.50",
   durationMonths: "3",
   journalCount: "6",
+  programme: "6aeb766064f4e9a49fc2e0af",
   features: ["Doorstep delivery"],
   registrationUrl: "",
   featured: false,

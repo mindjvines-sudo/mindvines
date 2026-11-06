@@ -5,7 +5,7 @@ import { Carousel } from "@/components/age-group/Carousel";
 import { GalleryTabs } from "@/components/age-group/GalleryTabs";
 import { PlanTabs, type PlanOption } from "@/components/age-group/PlanTabs";
 import { PillButton } from "@/components/ui/PillButton";
-import { REGISTER_HREF, type PlansSectionContent, type TopicGroup } from "@/lib/content";
+import { REGISTER_HREF, SECTION_IDS, type PlansSectionContent, type TopicGroup } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 /**
@@ -66,7 +66,7 @@ export function AgeGroupTopics({ badge, topics }: { badge: string; topics: Topic
   if (topics?.groups?.length) return <GroupedTopics topics={topics} groups={topics.groups} />;
 
   return (
-    <section className="bg-cream">
+    <section id={SECTION_IDS.topics} className="scroll-mt-24 bg-cream lg:scroll-mt-32">
       <div className={cn(CONTAINER, "pb-16 pt-[27px] lg:pb-[160px]")}>
         <Reveal y={12} className="flex justify-center">
           <h1 className={BADGE}>{badge}</h1>
@@ -132,7 +132,7 @@ export function AgeGroupTopics({ badge, topics }: { badge: string; topics: Topic
 /** mindvines.in/blank-5-1-1: heading and rule, then each badge over its covers in white frames. */
 function GroupedTopics({ topics, groups }: { topics: Topics; groups: TopicGroup[] }) {
   return (
-    <section className="bg-cream">
+    <section id={SECTION_IDS.topics} className="scroll-mt-24 bg-cream lg:scroll-mt-32">
       <div className={cn(CONTAINER, "pb-16 pt-12 lg:pb-[100px] lg:pt-[75px]")}>
         <Reveal className="text-center">
           <h1 className={cn(PAGE_HEADING, "text-ink")}>{topics.heading}</h1>
@@ -302,8 +302,25 @@ function formatRupees(amount: number) {
   return `₹${amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
 
-/** The plan switcher on its tan band, every word of it from the admin. */
-export function AgeGroupPricing({ heading, intro, items, priceNote, footnote }: PlansSectionContent) {
+function Static({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <div className={className}>{children}</div>;
+}
+
+/**
+ * The plan switcher on its tan band, every word of it from the admin.
+ * `animate={false}` drops the scroll-in fade, for bands that are swapped in
+ * on demand and should appear at once.
+ */
+export function AgeGroupPricing({
+  heading,
+  intro,
+  items,
+  priceNote,
+  footnote,
+  id = "plans",
+  animate = true,
+}: PlansSectionContent & { id?: string; animate?: boolean }) {
+  const Wrap = animate ? Reveal : Static;
   const plans: PlanOption[] = items.map((item) => ({
     tab: item.tab,
     cards: item.cards.map((card) => ({
@@ -320,9 +337,9 @@ export function AgeGroupPricing({ heading, intro, items, priceNote, footnote }: 
   const sideBySide = plans.some((plan) => plan.cards.length > 1);
 
   return (
-    <section id="plans" className="scroll-mt-36 bg-tan">
+    <section id={id} className="scroll-mt-36 bg-tan">
       <div className={cn(CONTAINER, "pb-16 pt-12 lg:pb-[124px] lg:pt-[63px]")}>
-        <Reveal className="mx-auto max-w-[835px]">
+        <Wrap className="mx-auto max-w-[835px]">
           {/* mindvines.in sets the side-by-side plans (Ages 9–12) under a brown heading, a single plan (Ages 6–8) under a near-black one. */}
           <h2 className={cn(PAGE_HEADING, sideBySide ? "text-ink" : "text-[#252525]")}>{heading}</h2>
           {intro && (
@@ -330,10 +347,10 @@ export function AgeGroupPricing({ heading, intro, items, priceNote, footnote }: 
               {intro}
             </p>
           )}
-        </Reveal>
-        <Reveal className={cn("mt-10", intro || !sideBySide ? "lg:mt-[46px]" : "lg:mt-[23px]")}>
+        </Wrap>
+        <Wrap className={cn("mt-10", intro || !sideBySide ? "lg:mt-[46px]" : "lg:mt-[23px]")}>
           <PlanTabs label={heading} plans={plans} priceNote={priceNote} footnote={footnote} />
-        </Reveal>
+        </Wrap>
       </div>
     </section>
   );

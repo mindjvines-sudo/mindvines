@@ -4,6 +4,8 @@
  * Subscription plan content is managed separately in the admin.
  */
 
+import { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
+
 /** Pages that live on the current Wix site and have no counterpart here yet. */
 const LIVE = "https://www.mindvines.in";
 
@@ -18,9 +20,17 @@ export const SITE = {
   logo: { src: "/images/logo.png", width: 518, height: 174 },
 } as const;
 
+/** The homepage's search-result title and description, also the site-wide default. */
+export const HOME_SEO = {
+  title: "Kids Journaling Programme | Creative Activities | Mindvines",
+  description:
+    "Give your child a creative space to write, draw, share ideas and connect with other young minds through Mindvines' engaging journaling programme.",
+} as const;
+
 export const SECTION_IDS = {
   howItWorks: "how-it-works",
   ageGroups: "age-groups",
+  topics: "topics",
   faq: "faq",
   contact: "contact",
 } as const;
@@ -32,26 +42,29 @@ export type MenuItem =
   | { label: string; href: string; children?: never }
   | { label: string; href?: never; children: { label: string; href: string }[] };
 
-export const MENU: MenuItem[] = [
-  { label: "How it Works", href: `/#${SECTION_IDS.howItWorks}` },
-  {
-    label: "A Glimpse of few topics",
-    children: [
-      { label: "Ages 6-8 yrs", href: `${LIVE}/blank-5` },
-      { label: "Ages 9-12 yrs", href: `${LIVE}/blank-5-1-1` },
-    ],
-  },
-  {
-    label: "Subscription plans",
-    children: [
-      { label: "Ages 6-8", href: "/subscriptions#ages-6-8" },
-      { label: "Ages 9-12", href: "/subscriptions#ages-9-12" },
-    ],
-  },
-  { label: "FAQ", href: `/#${SECTION_IDS.faq}` },
-  { label: "Contact us", href: `/#${SECTION_IDS.contact}` },
-  { label: "Registration", href: `${LIVE}/blank-6` },
-];
+/**
+ * The header menu. Topic links open each age group's own page on this site
+ * (wherever the admin published it), and plan links open the plans page on
+ * that age; an age without a published page is left out.
+ */
+export function buildMenu(agePages: { ageGroup: string; slug: string }[]): MenuItem[] {
+  const menu: MenuItem[] = [
+    { label: "How it Works", href: `/#${SECTION_IDS.howItWorks}` },
+    {
+      label: "A Glimpse of few topics",
+      children: agePages.map((page) => ({ label: `Ages ${page.ageGroup} yrs`, href: `/age-groups/${page.slug}#${SECTION_IDS.topics}` })),
+    },
+    {
+      label: "Subscription plans",
+      children: SUBSCRIPTION_AGE_GROUPS.map((age) => ({ label: `Ages ${age}`, href: `/subscriptions?age=${age}` })),
+    },
+    { label: "Renew subscription", href: "/renew" },
+    { label: "FAQ", href: `/#${SECTION_IDS.faq}` },
+    { label: "Contact us", href: `/#${SECTION_IDS.contact}` },
+    { label: "Registration", href: `${LIVE}/blank-6` },
+  ];
+  return menu.filter((item) => !item.children || item.children.length > 0);
+}
 
 export const HERO = {
   badge: "A shared journal programme for ages 6-12",

@@ -4,7 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { AgeGroup, AGE_GROUP_IMAGE_PATHS } from "@/models/AgeGroup";
 import type { ContentStatus } from "@/lib/constants";
 import type { AgeGroupInput } from "@/validations/age-group.schema";
-import type { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
+import { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 
 /** Single image fields, which must be unset by hand when their picker is cleared. */
 const SINGLE_IMAGE_PATHS = ["cardImage", "hero.image", "stats.image"] as const;
@@ -28,6 +28,32 @@ export async function listPublishedAgeGroups() {
     .populate(["cardImage", "hero.image"])
     .sort({ displayOrder: 1 })
     .lean();
+}
+
+export type AgeGroupPageLink = {
+  ageGroup: (typeof SUBSCRIPTION_AGE_GROUPS)[number];
+  slug: string;
+  priceNote: string;
+  footnote: string;
+};
+
+/**
+ * Each subscription age group's published page (the first by display order),
+ * youngest first: where the menu links for that age's topics, and the wording
+ * its plan band uses under prices and buttons.
+ */
+export async function listAgeGroupPagesByPlanAge(): Promise<AgeGroupPageLink[]> {
+  await connectToDatabase();
+  const groups = await AgeGroup.find({ status: "PUBLISHED", "plans.ageGroup": { $in: SUBSCRIPTION_AGE_GROUPS } })
+    .select("slug plans.ageGroup plans.priceNote plans.footnote")
+    .sort({ displayOrder: 1 })
+    .lean();
+  return SUBSCRIPTION_AGE_GROUPS.flatMap((ageGroup) => {
+    const group = groups.find((item) => item.plans?.ageGroup === ageGroup);
+    return group
+      ? [{ ageGroup, slug: group.slug, priceNote: group.plans?.priceNote ?? "", footnote: group.plans?.footnote ?? "" }]
+      : [];
+  });
 }
 
 /** The address of the published page whose plan band shows this age group's plans, if there is one. */

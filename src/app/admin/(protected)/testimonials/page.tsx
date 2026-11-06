@@ -6,6 +6,7 @@ import { can } from "@/lib/permissions";
 import { asPopulatedMedia } from "@/types/media";
 import { cloudinaryThumbnail } from "@/lib/cloudinary-url";
 import { deleteTestimonialAction, reorderTestimonialAction, setTestimonialStatusAction } from "./actions";
+import { Pagination } from "@/components/admin/ui/list-controls";
 import { Card } from "@/components/admin/ui/card";
 import { PageHeader } from "@/components/admin/ui/page-header";
 import { StatusBadge } from "@/components/admin/ui/badge";
@@ -31,7 +32,7 @@ export default async function TestimonialsListPage({
   const canCreate = can(user.role, "create", "testimonials");
   const canDelete = can(user.role, "delete", "testimonials");
   const canPublish = can(user.role, "publish", "testimonials");
-  const activeCount = result.items.filter((item) => item.status === "PUBLISHED").length;
+  const activeCount = result.published;
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,7 +49,7 @@ export default async function TestimonialsListPage({
         }
       />
 
-      {result.items.length > 0 && activeCount === 0 && (
+      {result.total > 0 && activeCount === 0 && (
         <Alert tone="info" title="No testimonials are active yet">
           The website keeps showing its built-in testimonials until at least one here is set to Active.
         </Alert>
@@ -90,8 +91,8 @@ export default async function TestimonialsListPage({
                     {canPublish && (
                       <Td>
                         <div className="flex items-center gap-0.5">
-                          <span className="w-5 text-xs tabular-nums text-slate-400">{index + 1}</span>
-                          {index > 0 ? (
+                          <span className="w-5 text-xs tabular-nums text-slate-400">{result.skip + index + 1}</span>
+                          {result.skip + index > 0 ? (
                             <form action={reorderTestimonialAction.bind(null, id, "up")}>
                               <ActionButton variant="ghost" label={`Move ${item.authorName} up`}>
                                 <ArrowUpIcon />
@@ -100,7 +101,7 @@ export default async function TestimonialsListPage({
                           ) : (
                             <span className="size-8" />
                           )}
-                          {index < result.items.length - 1 && (
+                          {result.skip + index < result.total - 1 && (
                             <form action={reorderTestimonialAction.bind(null, id, "down")}>
                               <ActionButton variant="ghost" label={`Move ${item.authorName} down`}>
                                 <ArrowDownIcon />
@@ -193,6 +194,7 @@ export default async function TestimonialsListPage({
             </TBody>
           </Table>
         )}
+        <Pagination path="/admin/testimonials" page={result.page} pages={result.pages} total={result.total} limit={result.limit} noun="testimonials" />
       </Card>
     </div>
   );

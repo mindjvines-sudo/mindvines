@@ -10,12 +10,13 @@ import { Hero } from "@/components/sections/Hero";
 import { Journey } from "@/components/sections/Journey";
 import { MoreThanJournal } from "@/components/sections/MoreThanJournal";
 import { WhatGrows } from "@/components/sections/WhatGrows";
-import { FAQ, SITE } from "@/lib/content";
+import { FAQ, HOME_SEO, SITE } from "@/lib/content";
 
-export const metadata: Metadata = buildMetadata(
-  { canonical: siteConfig.url },
-  { title: `${siteConfig.name} — ${siteConfig.tagline}`, description: siteConfig.description }
-);
+// The title is the whole title: the layout's "| Mindvines" suffix would repeat the brand.
+export const metadata: Metadata = {
+  ...buildMetadata({ canonical: siteConfig.url }, { title: HOME_SEO.title, description: HOME_SEO.description }),
+  title: { absolute: HOME_SEO.title },
+};
 
 const jsonLd = [
   {
@@ -56,7 +57,6 @@ export default function HomePage() {
       <WhatGrows />
       <Suspense fallback={<AgeGroupsLoading />}><AgeGroups /></Suspense>
       <FounderNote />
-      <Suspense fallback={<AgeGroupsLoading anchor={false} />}><AgeGroups anchor={false} /></Suspense>
       <Faq />
       <Contact />
     </>

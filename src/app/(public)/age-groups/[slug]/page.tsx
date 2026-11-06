@@ -15,7 +15,7 @@ import {
 } from "@/components/age-group/AgeGroupSections";
 import { siteConfig } from "@/config/site";
 import { AGE_GROUP_PAGES, type PlansSectionContent } from "@/lib/content";
-import { toPlanOptions } from "@/lib/plan-options";
+import { DEFAULT_FOOTNOTE, DEFAULT_PRICE_NOTE, toPlanOptions } from "@/lib/plan-options";
 import { buildMetadata } from "@/lib/seo";
 import { getPublishedAgeGroupBySlug } from "@/services/age-group.service";
 import { listPublishedSubscriptionPlansForAge } from "@/services/subscription.service";
@@ -94,9 +94,8 @@ export default async function AgeGroupPage({ params }: Props) {
           heading: group.plans?.heading || "Choose your subscription plan",
           intro: group.plans?.intro ?? "",
           items: toPlanOptions(livePlans),
-          // Checkout always adds GST, so the band says so unless the admin words it differently.
-          priceNote: group.plans?.priceNote || "plus GST",
-          footnote: group.plans?.footnote || "Switch or cancel anytime",
+          priceNote: group.plans?.priceNote || DEFAULT_PRICE_NOTE,
+          footnote: group.plans?.footnote || DEFAULT_FOOTNOTE,
         }
       : null;
 

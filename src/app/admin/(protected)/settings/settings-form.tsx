@@ -6,11 +6,13 @@ import { Card } from "@/components/admin/ui/card";
 import { Field, FormFooter, FormSection, Input, Textarea } from "@/components/admin/ui/form";
 import { Alert } from "@/components/admin/ui/feedback";
 import { buttonClasses } from "@/components/admin/ui/button";
+import { DEFAULT_SUBSCRIBER_NOTIFICATION_EMAIL } from "@/config/email";
+import type { SettingsInput } from "@/validations/settings.schema";
 
 export function SettingsForm({
   defaultValues,
 }: {
-  defaultValues: { siteName: string; tagline?: string; contactEmail?: string; contactPhone?: string; address?: string };
+  defaultValues: SettingsInput;
 }) {
   const [state, formAction, pending] = useActionState<SettingsFormState, FormData>(updateSettingsAction, undefined);
   const errors = state?.errors;
@@ -55,6 +57,28 @@ export function SettingsForm({
           </div>
           <Field label="Address" htmlFor="address" error={errors?.address}>
             <Textarea id="address" name="address" rows={3} defaultValue={defaultValues.address} />
+          </Field>
+        </FormSection>
+
+        <FormSection
+          title="Subscriber notifications"
+          description="Receive an email when a new subscription or renewal is confirmed after payment."
+        >
+          <Field
+            label="Notification email"
+            htmlFor="subscriberNotificationEmail"
+            error={errors?.subscriberNotificationEmail}
+            hint={`Leave blank to send notifications to ${DEFAULT_SUBSCRIBER_NOTIFICATION_EMAIL}.`}
+          >
+            <Input
+              id="subscriberNotificationEmail"
+              name="subscriberNotificationEmail"
+              type="email"
+              maxLength={254}
+              placeholder={DEFAULT_SUBSCRIBER_NOTIFICATION_EMAIL}
+              defaultValue={defaultValues.subscriberNotificationEmail}
+              invalid={!!errors?.subscriberNotificationEmail}
+            />
           </Field>
         </FormSection>
 

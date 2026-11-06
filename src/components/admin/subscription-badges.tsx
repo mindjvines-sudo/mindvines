@@ -7,6 +7,7 @@ import {
 
 const STATE_TONES: Record<SubscriptionState, BadgeTone> = {
   ACTIVE: "green",
+  UPCOMING: "blue",
   EXPIRING_SOON: "amber",
   EXPIRING_TODAY: "red",
   EXPIRED: "slate",

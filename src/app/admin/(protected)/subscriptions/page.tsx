@@ -5,6 +5,8 @@ import { can } from "@/lib/permissions";
 import { formatPlanPrice, SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 import { CONTENT_STATUSES } from "@/lib/constants";
 import { listSubscriptionPlansAdmin } from "@/services/subscription.service";
+import { listProgrammeOptions } from "@/services/programme.service";
+import { Pagination } from "@/components/admin/ui/list-controls";
 import { Card } from "@/components/admin/ui/card";
 import { PageHeader } from "@/components/admin/ui/page-header";
 import { StatusBadge, Badge } from "@/components/admin/ui/badge";
@@ -29,14 +31,13 @@ export default async function SubscriptionPlansPage({ searchParams }: { searchPa
   const ageGroup = first(query.ageGroup);
   const duration = Number(first(query.duration));
   const status = first(query.status);
-  const allPlans = await listSubscriptionPlansAdmin();
-  const durations = [...new Set(allPlans.map((plan) => plan.durationMonths))].sort((a, b) => a - b);
-  const plans = allPlans.filter(
-    (plan) =>
-      (!ageGroup || plan.ageGroup === ageGroup) &&
-      (!duration || plan.durationMonths === duration) &&
-      (!status || plan.status === status),
-  );
+  const [result, programmeOptions] = await Promise.all([
+    listSubscriptionPlansAdmin({ page: first(query.page), ageGroup, duration: duration || undefined, status }),
+    listProgrammeOptions(),
+  ]);
+  const programmeNames = new Map(programmeOptions.map((programme) => [programme._id.toString(), programme.name]));
+  const { items: plans, durations } = result;
+  const allPlans = { length: result.overall };
   const filtered = Boolean(ageGroup || duration || status);
   const canCreate = can(user.role, "create", "subscriptions");
 
@@ -83,7 +84,7 @@ export default async function SubscriptionPlansPage({ searchParams }: { searchPa
                 return <Tr key={id}>
                   <Td><span className="font-medium text-navy-900">{plan.name}</span>{plan.featured && <div className="mt-1"><Badge tone="violet">Recommended</Badge></div>}</Td>
                   <Td>Ages {plan.ageGroup}</Td><Td>{formatPlanPrice(plan.price)}</Td>
-                  <Td>{plan.durationMonths} {plan.durationMonths === 1 ? "month" : "months"}<span className="block text-xs text-slate-500">{plan.journalCount} journals</span></Td>
+                  <Td>{plan.durationMonths} {plan.durationMonths === 1 ? "month" : "months"}<span className="block text-xs text-slate-500">{plan.journalCount} journals{programmeNames.get(String(plan.programme)) ? ` · ${programmeNames.get(String(plan.programme))}` : ""}</span></Td>
                   <Td>{plan.displayOrder}</Td><Td><StatusBadge status={plan.status} /></Td>
                   <Td align="right"><RowActions>
                     {can(user.role, "update", "subscriptions") && <ButtonLink href={`/admin/subscriptions/${id}/edit`} variant="ghost" size="sm" aria-label={`Edit ${plan.name}`}><PencilIcon /></ButtonLink>}
@@ -94,6 +95,7 @@ export default async function SubscriptionPlansPage({ searchParams }: { searchPa
             </TBody>
           </Table>
         )}
+        <Pagination path="/admin/subscriptions" page={result.page} pages={result.pages} total={result.total} limit={result.limit} params={{ ageGroup, duration: duration ? String(duration) : "", status }} noun="plans" />
       </Card>
     </div>
   );

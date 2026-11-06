@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Fredoka, Nunito_Sans, Onest } from "next/font/google";
+import { connection } from "next/server";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { HERO, SITE } from "@/lib/content";
+import { HERO, HOME_SEO, SITE, buildMenu } from "@/lib/content";
+import { listAgeGroupPagesByPlanAge } from "@/services/age-group.service";
 
 import "./globals.css";
 
@@ -38,10 +40,10 @@ const bricolage = Bricolage_Grotesque({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE.name} — ${SITE.tagline}`,
+    default: HOME_SEO.title,
     template: `%s | ${SITE.name}`,
   },
-  description: SITE.description,
+  description: HOME_SEO.description,
   keywords: [
     "shared journal",
     "journal programme for kids",
@@ -56,14 +58,14 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: SITE.url,
     siteName: SITE.name,
-    title: `${SITE.name} — ${SITE.tagline}`,
-    description: SITE.description,
+    title: HOME_SEO.title,
+    description: HOME_SEO.description,
     images: [{ url: HERO.image.src, width: HERO.image.width, height: HERO.image.height, alt: SITE.tagline }],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE.name} — ${SITE.tagline}`,
-    description: SITE.description,
+    title: HOME_SEO.title,
+    description: HOME_SEO.description,
     images: [HERO.image.src],
   },
   robots: {
@@ -83,7 +85,12 @@ export const viewport: Viewport = {
 // routes), and the marketing header/footer live here instead of the shared
 // root layout, so admin pages never inherit this site's fonts, tokens, or
 // chrome. See src/app/layout.tsx for why the split works.
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  // The menu links to whichever age group pages are published; without the
+  // database it still shows, minus the topic links.
+  await connection();
+  const agePages = await listAgeGroupPagesByPlanAge().catch(() => []);
+
   return (
     <div className={`${fredoka.variable} ${nunitoSans.variable} ${onest.variable} ${bricolage.variable} font-sans antialiased`}>
       <a
@@ -92,7 +99,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       >
         Skip to content
       </a>
-      <Header />
+      <Header menu={buildMenu(agePages)} />
       <main id="main">{children}</main>
       <Footer />
     </div>

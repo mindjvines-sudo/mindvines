@@ -15,6 +15,7 @@ export type StoredSubscriptionStatus = (typeof STORED_SUBSCRIPTION_STATUSES)[num
 /** What the admin shows and filters by. */
 export const SUBSCRIPTION_STATES = [
   "ACTIVE",
+  "UPCOMING",
   "EXPIRING_SOON",
   "EXPIRING_TODAY",
   "EXPIRED",
@@ -25,6 +26,7 @@ export type SubscriptionState = (typeof SUBSCRIPTION_STATES)[number];
 
 export const SUBSCRIPTION_STATE_LABELS: Record<SubscriptionState, string> = {
   ACTIVE: "Active",
+  UPCOMING: "Upcoming",
   EXPIRING_SOON: "Expiring soon",
   EXPIRING_TODAY: "Expiring today",
   EXPIRED: "Expired",
@@ -43,13 +45,15 @@ export function remainingDays(expiryDate: Date | string | null | undefined, now 
 }
 
 export function deriveState(
-  subscription: { status: StoredSubscriptionStatus; expiryDate?: Date | string | null },
+  subscription: { status: StoredSubscriptionStatus; startDate?: Date | string | null; expiryDate?: Date | string | null },
   now = new Date()
 ): SubscriptionState {
   if (subscription.status === "PENDING_PAYMENT") return "PENDING_PAYMENT";
   if (subscription.status === "CANCELLED") return "CANCELLED";
   const days = remainingDays(subscription.expiryDate, now);
   if (days === 0) return "EXPIRED";
+  // Paid and queued behind another subscription: not started yet.
+  if (subscription.startDate && new Date(subscription.startDate) > now) return "UPCOMING";
   if (days === 1) return "EXPIRING_TODAY";
   if (days <= EXPIRING_SOON_DAYS) return "EXPIRING_SOON";
   return "ACTIVE";
@@ -59,6 +63,7 @@ export function deriveState(
 export function stateFilter(state: SubscriptionState, now = new Date()): Record<string, unknown> {
   const in1 = new Date(now.getTime() + DAY_MS);
   const in7 = new Date(now.getTime() + EXPIRING_SOON_DAYS * DAY_MS);
+  const started = { startDate: { $not: { $gt: now } } };
   switch (state) {
     case "PENDING_PAYMENT":
       return { status: "PENDING_PAYMENT" };
@@ -66,12 +71,14 @@ export function stateFilter(state: SubscriptionState, now = new Date()): Record<
       return { status: "CANCELLED" };
     case "EXPIRED":
       return { status: { $in: ["ACTIVE", "EXPIRED"] }, expiryDate: { $lte: now } };
+    case "UPCOMING":
+      return { status: "ACTIVE", startDate: { $gt: now }, expiryDate: { $gt: now } };
     case "EXPIRING_TODAY":
-      return { status: "ACTIVE", expiryDate: { $gt: now, $lte: in1 } };
+      return { status: "ACTIVE", ...started, expiryDate: { $gt: now, $lte: in1 } };
     case "EXPIRING_SOON":
-      return { status: "ACTIVE", expiryDate: { $gt: in1, $lte: in7 } };
+      return { status: "ACTIVE", ...started, expiryDate: { $gt: in1, $lte: in7 } };
     case "ACTIVE":
-      return { status: "ACTIVE", expiryDate: { $gt: in7 } };
+      return { status: "ACTIVE", ...started, expiryDate: { $gt: in7 } };
   }
 }
 

@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { enquiryInputSchema, type EnquiryInput } from "@/validations/enquiry.schema";
 import { createEnquiry } from "@/services/enquiry.service";
+import { sendEnquiryEmails } from "@/services/enquiry-email.service";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export type ContactFormState = {
@@ -40,7 +41,8 @@ export async function submitEnquiryAction(_prev: ContactFormState, formData: For
   }
 
   try {
-    await createEnquiry({ ...validated.data, subject: "Website enquiry" }, ip);
+    const enquiry = await createEnquiry({ ...validated.data, subject: "Website enquiry" }, ip);
+    await sendEnquiryEmails(enquiry);
   } catch (error) {
     console.error("Contact form: failed to save enquiry", error);
     return { message: "We couldn’t send your message just now. Please try again or email us." };

@@ -8,10 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
+    "setup:registration": "tsx scripts/setup-registration.ts",
     "test:subscriptions": "tsx --test tests/subscription.test.ts",
     "test:age-groups": "tsx --test tests/age-group.test.ts",
     "test:payments": "tsx --test tests/payments.test.ts",
-    "test:auth": "tsx --conditions=react-server --test tests/auth.test.ts"
+    "test:email": "tsx --conditions=react-server --test tests/email.test.ts tests/subscriber-email.test.ts",
+    "test:auth": "tsx --conditions=react-server --test tests/auth.test.ts",
+    "test:recovery": "tsx --conditions=react-server --test tests/registration-recovery.test.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",
@@ -28,6 +31,7 @@
     "mongoose": "^9.10.1",
     "motion": "^13.4.0",
     "next": "16.3.5",
+    "nodemailer": "^10.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
@@ -37,6 +41,7 @@
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

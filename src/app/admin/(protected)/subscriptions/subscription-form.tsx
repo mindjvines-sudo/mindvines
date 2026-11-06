@@ -10,8 +10,9 @@ import { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 import type { SubscriptionInput } from "@/validations/subscription.schema";
 import type { SubscriptionFormState } from "./actions";
 
-export function SubscriptionForm({ action, defaultValues, submitLabel }: {
+export function SubscriptionForm({ action, defaultValues, submitLabel, programmes }: {
   action: (state: SubscriptionFormState, data: FormData) => Promise<SubscriptionFormState>;
+  programmes: { id: string; name: string; ageGroup: string; active: boolean }[];
   defaultValues?: SubscriptionInput;
   submitLabel: string;
 }) {
@@ -53,6 +54,14 @@ export function SubscriptionForm({ action, defaultValues, submitLabel }: {
               <Input id="journalCount" name="journalCount" type="number" min={1} max={1000} step={1} defaultValue={defaultValues?.journalCount ?? 6} invalid={!!errors?.journalCount} required />
             </Field>
           </div>
+          <Field label="Programme" htmlFor="programme" error={errors?.programme} required hint="What this plan is a duration of. The programme decides which topic lists families pick from (Admin → Programme Management).">
+            <Select id="programme" name="programme" defaultValue={defaultValues?.programme ?? ""} invalid={!!errors?.programme}>
+              <option value="" disabled>Choose a programme</option>
+              {programmes.map((programme) => (
+                <option key={programme.id} value={programme.id}>Ages {programme.ageGroup} · {programme.name}{programme.active ? "" : " (switched off)"}</option>
+              ))}
+            </Select>
+          </Field>
           <Field label="Benefits" htmlFor="features" error={errors?.features} hint="One benefit per line. Up to 20 benefits, 200 characters each.">
             <Textarea id="features" name="features" rows={5} defaultValue={defaultValues?.features.join("\n")} invalid={!!errors?.features} placeholder={"Doorstep pickup and delivery\nEvery entry reviewed"} />
           </Field>

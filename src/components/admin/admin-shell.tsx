@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ADMIN_NAV_GROUPS, type AdminNavItem } from "@/config/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ADMIN_NAV_GROUPS, activeNavHref, type AdminNavIcon, type AdminNavItem } from "@/config/navigation";
 import type { SafeUser } from "@/lib/dal";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/admin/global-search";
@@ -18,6 +18,12 @@ import {
   ImageIcon,
   GearIcon,
   GlobeIcon,
+  LayersIcon,
+  CheckCircleIcon,
+  BellIcon,
+  ArchiveIcon,
+  ClockIcon,
+  StarIcon,
   MenuIcon,
   SidebarIcon,
   XIcon,
@@ -25,12 +31,20 @@ import {
 
 type IconType = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
-const NAV_ICONS: Record<string, IconType> = {
-  ageGroups: PeopleIcon,
-  subscriptions: DocumentIcon,
-  blog: DocumentIcon,
-  testimonials: ChatIcon,
+const NAV_ICONS: Record<AdminNavIcon, IconType> = {
+  registrations: PeopleIcon,
+  active: CheckCircleIcon,
+  expiring: BellIcon,
+  expired: ArchiveIcon,
+  pending: ClockIcon,
+  cancelled: XIcon,
+  plans: DocumentIcon,
+  programmes: StarIcon,
+  topics: LayersIcon,
   enquiries: InboxIcon,
+  testimonials: ChatIcon,
+  ageGroups: PeopleIcon,
+  blog: DocumentIcon,
   media: ImageIcon,
   settings: GearIcon,
 };
@@ -89,6 +103,8 @@ export function AdminShell({
     };
   }, [isMobileOpen]);
 
+  const searchParams = useSearchParams();
+  const activeHref = activeNavHref(visibleNav, pathname, new URLSearchParams(searchParams.toString()));
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const closeMobile = () => setIsMobileOpen(false);
 
@@ -170,11 +186,11 @@ export function AdminShell({
                   <NavLink
                     key={item.href}
                     href={item.href}
-                    icon={NAV_ICONS[item.resource] ?? DocumentIcon}
+                    icon={NAV_ICONS[item.icon] ?? DocumentIcon}
                     label={item.label}
                     badge={badges[item.href]}
                     collapsed={isCollapsed}
-                    active={isActive(item.href)}
+                    active={activeHref === item.href}
                     onNavigate={closeMobile}
                   />
                 ))}

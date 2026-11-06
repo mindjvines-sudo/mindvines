@@ -17,12 +17,13 @@ export async function listTestimonialsAdmin(params: {
   if (params.status) filter.status = params.status;
   if (params.search) filter.authorName = { $regex: params.search, $options: "i" };
 
-  const [items, count] = await Promise.all([
+  const [items, count, published] = await Promise.all([
     Testimonial.find(filter).populate("image").sort({ displayOrder: 1 }).skip(skip).limit(limit).lean(),
     Testimonial.countDocuments(filter),
+    Testimonial.countDocuments({ status: "PUBLISHED" }),
   ]);
 
-  return { items, page, limit, total: count, pages: totalPages(count, limit) };
+  return { items, page, limit, skip, total: count, published, pages: totalPages(count, limit) };
 }
 
 export async function getTestimonialByIdAdmin(id: string) {

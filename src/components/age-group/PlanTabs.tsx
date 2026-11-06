@@ -12,6 +12,8 @@ export type PlanCard = {
   highlight: boolean;
   buttonLabel: string;
   buttonHref: string;
+  /** Picks the plan in place of linking to checkout (the renewal page). */
+  select?: { selected: boolean; current: boolean; onSelect: () => void };
 };
 
 /** One duration tab and the plans offered for it. */
@@ -29,11 +31,14 @@ export function PlanTabs({
   plans,
   priceNote,
   footnote,
+  compact = false,
 }: {
   label: string;
   plans: PlanOption[];
   priceNote: string;
   footnote: string;
+  /** For a panel narrower than the page: three cards share a row only on extra-wide screens. */
+  compact?: boolean;
 }) {
   const baseId = useId();
   const [active, setActive] = useState(0);
@@ -95,7 +100,7 @@ export function PlanTabs({
         role={plans.length > 1 ? "tabpanel" : undefined}
         id={`${baseId}-panel`}
         aria-labelledby={plans.length > 1 ? `${baseId}-tab-${active}` : undefined}
-        className={cn("grid gap-6", multiple ? "mt-[37px]" : "mt-[11px]", gridClasses(cards.length))}
+        className={cn("grid gap-6", multiple ? "mt-[37px]" : "mt-[11px]", gridClasses(cards.length, compact))}
       >
         {cards.map((card, index) => (
           <PlanCardView key={index} card={card} tab={plans[active].tab} titled={cards.length > 1} footnote={footnote} priceNote={priceNote} />
@@ -106,9 +111,10 @@ export function PlanTabs({
 }
 
 /** One card stays a plain centred card; more share the row, wrapping on narrower screens. */
-function gridClasses(count: number) {
+function gridClasses(count: number, compact: boolean) {
   if (count <= 1) return "";
   if (count === 2) return "mx-auto max-w-[448px] md:max-w-none md:grid-cols-[repeat(2,minmax(0,332px))] md:justify-center lg:gap-x-[65px]";
+  if (count === 3 && compact) return "mx-auto max-w-[448px] md:max-w-none md:grid-cols-2 md:gap-x-6 xl:grid-cols-3 xl:gap-x-10";
   if (count === 3) return "mx-auto max-w-[448px] md:max-w-none md:grid-cols-2 lg:grid-cols-3 lg:gap-x-[65px] lg:px-[13px]";
   return "mx-auto max-w-[448px] md:max-w-none md:grid-cols-2 xl:grid-cols-4";
 }
@@ -131,17 +137,26 @@ function PlanCardView({
       {card.badge}
     </p>
   );
-  const button = (className: string) => (
-    <a
-      href={card.buttonHref}
-      className={cn(
-        "inline-flex h-[47px] items-center justify-center rounded-full border border-r-[3px] border-b-[3px] border-cocoa bg-amber px-6 font-ui text-[18px] text-paper transition-colors hover:bg-[#f5b21c]",
-        className,
-      )}
-    >
-      {card.buttonLabel}
-      <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}</span>
-    </a>
+  const buttonClass = "inline-flex max-w-full h-[47px] items-center justify-center rounded-full border border-r-[3px] border-b-[3px] border-cocoa px-6 font-ui text-[18px] transition-colors";
+  const button = (className: string) =>
+    card.select ? (
+      <button
+        type="button"
+        onClick={card.select.onSelect}
+        aria-pressed={card.select.selected}
+        className={cn(buttonClass, card.select.selected ? "bg-cocoa text-paper" : "bg-amber text-paper hover:bg-[#f5b21c]", className)}
+      >
+        {card.select.selected ? "Selected ✓" : card.buttonLabel}
+        <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}{card.select.current ? " (your current plan)" : ""}</span>
+      </button>
+    ) : (
+      <a href={card.buttonHref} className={cn(buttonClass, "bg-amber text-paper hover:bg-[#f5b21c]", className)}>
+        {card.buttonLabel}
+        <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}</span>
+      </a>
+    );
+  const currentTag = card.select?.current && (
+    <p className="absolute left-[12px] top-[17px] rounded-full bg-butter px-4 py-1 text-[14px] font-bold text-ink">Current plan</p>
   );
 
   // A duration's only plan: the plain card, priced and nothing more.
@@ -149,6 +164,7 @@ function PlanCardView({
     return (
       <div className="relative flex min-h-[346px] flex-col items-center rounded-[28.5px] border border-amber bg-paper px-6 pb-[24px] pt-[91px] shadow-[0_2px_2px_0_rgb(240_165_0/0.25)]">
         {badge}
+        {currentTag}
         <div className="w-[200px] max-w-full">
           <p className="whitespace-nowrap font-bold text-black">
             <span className="text-[38px] leading-none tabular-nums">{card.price}</span>
@@ -172,6 +188,7 @@ function PlanCardView({
       )}
     >
       {badge}
+      {currentTag}
       <div className="flex w-full flex-col lg:min-h-[101px]">
         <h3 className="break-words pb-[19px] text-[24px] font-bold leading-[1.5] text-[#4d3f32] lg:text-[27.32px]">{card.title}</h3>
         <div className="mx-[3px] mt-auto border-t border-dashed border-amber" aria-hidden />

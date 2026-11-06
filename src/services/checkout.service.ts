@@ -1,5 +1,5 @@
 import "server-only";
-import { isValidObjectId, type Types } from "mongoose";
+import { type Types } from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   createRazorpayOrder,
@@ -9,18 +9,23 @@ import {
   type RazorpayPayment,
 } from "@/lib/razorpay";
 import { verifyPaymentSignature } from "@/lib/razorpay-signature";
+import { gstRatePercent } from "@/lib/gst";
 import { addMonths, computeAmounts } from "@/lib/subscription-status";
 import { Payment } from "@/models/Payment";
 import { Subscriber } from "@/models/Subscriber";
 import { Subscription } from "@/models/Subscription";
 import { SubscriptionPlan } from "@/models/SubscriptionPlan";
-import type { CheckoutDetails } from "@/validations/checkout.schema";
+import { applyStartedSubscriptions, completeRegistration, loadRegistrationForPayment, markRegistrationPaymentPending } from "@/services/registration.service";
+import { subscriptionAdminAlertEmail, subscriptionConfirmationEmail, type SubscriptionEmailData } from "@/lib/email-templates";
+import { SITE } from "@/lib/content";
+import { sendEmail } from "@/services/email.service";
+import { EMAIL_LOGO_CID, loadEmailLogo } from "@/services/email-logo.service";
+import { prepareRenewal } from "@/services/renewal.service";
+import { ageInYears } from "@/validations/registration.schema";
+import { getSubscriberNotificationEmail } from "@/services/settings.service";
+import { siteConfig } from "@/config/site";
 
-/** GST added to a plan's listed price. 18% is India's rate for this kind of service; override with GST_RATE_PERCENT. */
-export function gstRatePercent(): number {
-  const configured = Number(process.env.GST_RATE_PERCENT);
-  return Number.isFinite(configured) && configured >= 0 && configured <= 50 ? configured : 18;
-}
+export { gstRatePercent } from "@/lib/gst";
 
 export class CheckoutError extends Error {
   constructor(
@@ -46,26 +51,62 @@ export type CheckoutOrder = {
   currency: string;
 };
 
-/**
- * Prices the plan on the server (the browser's numbers are never used), then
- * opens a Razorpay order. Nothing but a PENDING_PAYMENT subscription is saved
- * here; the customer record waits for a verified payment.
- */
-export async function createCheckoutOrder(planId: string, details: CheckoutDetails): Promise<CheckoutOrder> {
-  await connectToDatabase();
-  const plan = isValidObjectId(planId) ? await SubscriptionPlan.findOne({ _id: planId, status: "PUBLISHED" }).lean() : null;
-  if (!plan) throw new CheckoutError("PLAN_UNAVAILABLE", "This plan is no longer available.");
+type PayableRegistration = Awaited<ReturnType<typeof loadRegistrationForPayment>>;
+type PayablePlan = { _id: Types.ObjectId; name: string; ageGroup: string; price: number; durationMonths: number };
 
+/**
+ * Opens a Razorpay order for a registration and plan: a new registration's
+ * first subscription, or a renewal. The plan is priced on the server; nothing
+ * the browser sends is used for money. Only a PENDING_PAYMENT subscription is
+ * saved here, holding a searchable copy of the registration; the customer
+ * record waits for a verified payment. A retry within half an hour picks up
+ * the order it already has, so paying twice is never offered.
+ */
+async function openOrder(
+  registration: PayableRegistration,
+  plan: PayablePlan,
+  options: { renewal: boolean; programmeName?: string | null }
+): Promise<CheckoutOrder> {
   const { baseAmount, taxAmount, totalAmount } = computeAmounts(plan.price, gstRatePercent());
   if (totalAmount < 100) throw new CheckoutError("PLAN_UNAVAILABLE", "This plan can't be bought online.");
 
-  const registration = { name: details.name, email: details.email, phone: details.phone, childName: details.childName, childAge: details.childAge };
+  const { child, parent, address, consents, preferences } = registration;
+  if (!child || !parent || !address) throw new CheckoutError("NOT_FOUND", "Your registration is incomplete. Please check your details.");
+  const snapshot = {
+    name: parent.name,
+    email: parent.email,
+    phone: `+${parent.phoneDial} ${parent.phone}`,
+    childName: child.name,
+    childAge: String(ageInYears(child.dob)),
+    childDob: child.dob,
+    school: child.school,
+    nickname: preferences?.nickname ?? undefined,
+    address: {
+      countryCode: address.countryCode,
+      country: address.country,
+      line: [address.line1, address.line2].filter(Boolean).join(", "),
+      city: address.city,
+      postalCode: address.postalCode,
+    },
+    consents: {
+      terms: consents?.terms?.given ?? false,
+      termsAcceptedAt: consents?.terms?.at ?? undefined,
+      featureWork: consents?.featureWork?.given ?? false,
+      whatsappUpdates: consents?.whatsappUpdates?.given ?? false,
+    },
+  };
+  const planSnapshot = {
+    name: plan.name,
+    ageGroup: plan.ageGroup,
+    price: plan.price,
+    durationMonths: plan.durationMonths,
+    programme: options.programmeName ?? registration.programmeName ?? undefined,
+  };
 
-  // A retry within half an hour picks up the order it already has.
   const recent = await Subscription.findOne({
     status: "PENDING_PAYMENT",
+    registrationId: registration._id,
     plan: plan._id,
-    "registration.email": details.email,
     createdAt: { $gt: new Date(Date.now() - REUSE_ORDER_MS) },
   })
     .sort({ createdAt: -1 })
@@ -74,22 +115,31 @@ export async function createCheckoutOrder(planId: string, details: CheckoutDetai
       "razorpayOrderId amount currency status"
     );
   if (recent?.payment && recent.payment.amount === totalAmount && (UNSETTLED as readonly string[]).includes(recent.payment.status)) {
-    await Subscription.updateOne({ _id: recent._id }, { $set: { registration } });
+    await Subscription.updateOne({ _id: recent._id }, { $set: { registration: snapshot, planSnapshot } });
     return { orderId: recent.payment.razorpayOrderId, keyId: razorpayKeyId(), amount: totalAmount, currency: recent.payment.currency };
   }
 
   const subscription = await Subscription.create({
     plan: plan._id,
-    planSnapshot: { name: plan.name, ageGroup: plan.ageGroup, price: plan.price, durationMonths: plan.durationMonths },
-    registration,
+    planSnapshot,
+    registration: snapshot,
+    registrationId: registration._id,
+    reference: registration.reference,
+    renewal: options.renewal,
     status: "PENDING_PAYMENT",
   });
 
   try {
     const order = await createRazorpayOrder({
       amount: totalAmount,
-      receipt: subscription._id.toString(),
-      notes: { subscriptionId: subscription._id.toString(), planId: plan._id.toString(), email: details.email },
+      receipt: `${registration.reference}-${subscription._id.toString().slice(-6)}`,
+      notes: {
+        subscriptionId: subscription._id.toString(),
+        reference: registration.reference,
+        planId: plan._id.toString(),
+        email: parent.email,
+        type: options.renewal ? "renewal" : "registration",
+      },
     });
     const payment = await Payment.create({
       subscription: subscription._id,
@@ -107,6 +157,33 @@ export async function createCheckoutOrder(planId: string, details: CheckoutDetai
     await Subscription.deleteOne({ _id: subscription._id });
     throw error;
   }
+}
+
+/** Page 3 of the registration form: payment for a saved registration (pages 1 and 2 complete). */
+export async function createCheckoutOrder(registrationId: string, token: string): Promise<CheckoutOrder> {
+  await connectToDatabase();
+  const registration = await loadRegistrationForPayment(registrationId, token);
+  const plan = await SubscriptionPlan.findOne({ _id: registration.plan, status: "PUBLISHED" }).lean();
+  if (!plan) throw new CheckoutError("PLAN_UNAVAILABLE", "This plan is no longer available.");
+  const order = await openOrder(registration, plan, { renewal: false });
+  await markRegistrationPaymentPending(registration._id);
+  return order;
+}
+
+/**
+ * Renewing a registration (looked up by its number) with any published plan.
+ * Topics for lists the child hasn't picked from yet (a new programme) are
+ * checked and saved first.
+ */
+export async function createRenewalOrder(params: {
+  registrationId: string;
+  token: string;
+  planId: string;
+  selections: Record<string, string[]>;
+}): Promise<CheckoutOrder> {
+  await connectToDatabase();
+  const { registration, plan, programmeName } = await prepareRenewal(params);
+  return openOrder(registration, plan, { renewal: true, programmeName });
 }
 
 export type SettleResult = "paid" | "pending" | "mismatch" | "unknown";
@@ -210,13 +287,17 @@ async function activateSubscription(paymentId: Types.ObjectId) {
   const subscriber = await upsertSubscriber(registration);
   if (!subscriber) return;
 
-  // Renewing early starts where the current plan for that age group ends.
+  // Renewing early starts where this child's current subscription ends. A
+  // registration is one child, so a parent's other children never affect it;
+  // older subscriptions without one fall back to the parent and age group.
   const now = new Date();
   const current = await Subscription.findOne({
-    subscriber: subscriber._id,
+    _id: { $ne: subscription._id },
     status: "ACTIVE",
-    "planSnapshot.ageGroup": planSnapshot.ageGroup,
     expiryDate: { $gt: now },
+    ...(subscription.registrationId
+      ? { registrationId: subscription.registrationId }
+      : { subscriber: subscriber._id, "planSnapshot.ageGroup": planSnapshot.ageGroup }),
   }).sort({ expiryDate: -1 });
   const startDate = current?.expiryDate ?? now;
 
@@ -231,7 +312,88 @@ async function activateSubscription(paymentId: Types.ObjectId) {
       },
     }
   );
-  if (activated) await Payment.updateOne({ _id: payment._id }, { $set: { subscriber: subscriber._id } });
+  if (activated) {
+    await Payment.updateOne({ _id: payment._id }, { $set: { subscriber: subscriber._id } });
+    if (subscription.registrationId) {
+      await completeRegistration(subscription.registrationId, {
+        subscriber: subscriber._id,
+        subscription: subscription._id,
+        plan: subscription.plan,
+        programmeName: planSnapshot.programme,
+        // Queued behind the current subscription: the child stays on the current programme until this one starts.
+        startsNow: startDate <= now,
+      });
+    }
+    await sendSubscriptionEmails(subscription._id, payment._id, startDate, now);
+  }
+}
+
+/**
+ * Emails the parent and admin once their subscription is confirmed. Never throws and
+ * runs only after the one-time activation above, so a payment confirmed twice
+ * (browser and webhook) still sends one email.
+ */
+async function sendSubscriptionEmails(subscriptionId: Types.ObjectId, paymentId: Types.ObjectId, startDate: Date, now: Date) {
+  try {
+    const [subscription, payment] = await Promise.all([Subscription.findById(subscriptionId).lean(), Payment.findById(paymentId).lean()]);
+    if (!subscription?.planSnapshot || !subscription.registration || !subscription.expiryDate || !payment) return;
+    const { registration, planSnapshot } = subscription;
+    const topics = registration.topics
+      ? [
+          ...(registration.topics.writing?.length ? [{ category: "Writing", titles: registration.topics.writing }] : []),
+          ...(registration.topics.sketching?.length ? [{ category: "Sketching", titles: registration.topics.sketching }] : []),
+        ]
+      : [];
+    const logo = await loadEmailLogo();
+    const data: SubscriptionEmailData = {
+      site: { name: SITE.name, url: SITE.url, logoUrl: logo ? `cid:${EMAIL_LOGO_CID}` : undefined, email: SITE.email, phone: SITE.phone },
+      parentName: registration.name,
+      childName: registration.childName || "your child",
+      reference: subscription.reference ?? "",
+      renewal: Boolean(subscription.renewal),
+      programme: planSnapshot.programme ?? "",
+      planName: planSnapshot.name,
+      ageGroup: planSnapshot.ageGroup,
+      durationMonths: planSnapshot.durationMonths,
+      startDate,
+      expiryDate: subscription.expiryDate,
+      amountPaise: payment.amount,
+      taxPaise: payment.taxAmount,
+      paymentId: payment.razorpayPaymentId,
+      topics,
+      queued: startDate > now,
+    };
+    const attachments = logo ? [logo] : undefined;
+    // Each delivery is independent: a failed parent email must not suppress the staff alert.
+    const deliveries = await Promise.allSettled([
+      (async () => {
+        if (subscription.confirmationEmailSentAt) return;
+        const result = await sendEmail({ to: registration.email, ...subscriptionConfirmationEmail(data), attachments });
+        if (result.ok) await Subscription.updateOne({ _id: subscriptionId }, { $set: { confirmationEmailSentAt: new Date() } });
+      })(),
+      (async () => {
+        if (subscription.adminNotificationEmailSentAt) return;
+        const to = await getSubscriberNotificationEmail();
+        const result = await sendEmail({
+          to,
+          ...subscriptionAdminAlertEmail({
+            ...data,
+            parentEmail: registration.email,
+            parentPhone: registration.phone,
+            adminUrl: `${siteConfig.url}/admin/subscribers/${subscriptionId}`,
+          }),
+          replyTo: registration.email,
+          attachments,
+        });
+        if (result.ok) await Subscription.updateOne({ _id: subscriptionId }, { $set: { adminNotificationEmailSentAt: new Date() } });
+      })(),
+    ]);
+    for (const delivery of deliveries) {
+      if (delivery.status === "rejected") console.error("[email] subscription delivery failed:", delivery.reason instanceof Error ? delivery.reason.message : delivery.reason);
+    }
+  } catch (error) {
+    console.error("[email] subscription confirmation failed:", error instanceof Error ? error.message : error);
+  }
 }
 
 /** The browser's success callback: its signature is checked here, then the payment is read back from Razorpay. */
@@ -270,5 +432,6 @@ export async function getPaymentStatus(orderId: string) {
 export async function expireLapsedSubscriptions(now = new Date()) {
   await connectToDatabase();
   const result = await Subscription.updateMany({ status: "ACTIVE", expiryDate: { $lte: now } }, { $set: { status: "EXPIRED" } });
+  await applyStartedSubscriptions({}, now);
   return result.modifiedCount;
 }

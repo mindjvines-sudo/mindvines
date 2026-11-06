@@ -15,6 +15,7 @@ export const subscriptionInputSchema = z.object({
   )),
   durationMonths: numberInput(z.number().int().min(1).max(120)),
   journalCount: numberInput(z.number().int().min(1).max(1000)),
+  programme: z.string().regex(/^[a-f\d]{24}$/i, "Choose the programme this plan belongs to"),
   features: z.array(z.string().trim().min(1).max(200)).max(20),
   registrationUrl: z.string().trim().max(2000).refine((value) => {
     if (!value) return true;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SubscriptionPlans, SubscriptionPlansLoading } from "@/components/sections/SubscriptionPlans";
 import { siteConfig } from "@/config/site";
+import { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 
 export const metadata: Metadata = {
   title: "Subscription Plans",
@@ -9,12 +10,14 @@ export const metadata: Metadata = {
   alternates: { canonical: `${siteConfig.url}/subscriptions` },
 };
 
-export default function SubscriptionsPage() {
-  return <>
-    <div className="bg-paper px-5 py-14 text-center text-ink">
-      <h1 className="fluid-heading font-display font-bold">A journal journey of their own</h1>
-      <p className="mx-auto mt-5 max-w-xl text-lg">Find the right plan for your child’s age and curiosity.</p>
-    </div>
-    <Suspense fallback={<SubscriptionPlansLoading />}><SubscriptionPlans /></Suspense>
-  </>;
+/** `?age=9-12` picks the age group; without it (or with an unknown one) the youngest shows. */
+export default async function SubscriptionsPage({ searchParams }: { searchParams: Promise<{ age?: string | string[] }> }) {
+  const { age: requested } = await searchParams;
+  const age = SUBSCRIPTION_AGE_GROUPS.find((option) => option === requested) ?? SUBSCRIPTION_AGE_GROUPS[0];
+
+  return (
+    <Suspense fallback={<SubscriptionPlansLoading age={age} />}>
+      <SubscriptionPlans age={age} />
+    </Suspense>
+  );
 }

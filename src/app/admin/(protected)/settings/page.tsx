@@ -10,12 +10,13 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" description="Your site’s name and contact details." />
+      <PageHeader title="Settings" description="Your site’s name, contact details and subscriber notifications." />
       <SettingsForm
         defaultValues={{
           siteName: settings.siteName,
           tagline: settings.tagline ?? undefined,
           contactEmail: settings.contactEmail ?? undefined,
+          subscriberNotificationEmail: settings.subscriberNotificationEmail ?? "",
           contactPhone: settings.contactPhone ?? undefined,
           address: settings.address ?? undefined,
         }}

@@ -32,7 +32,7 @@ const BUILT_IN_CARDS: AgeGroupCard[] = AGE_GROUPS.groups.map((group) => ({
  * heading come from Admin → Age Groups; until one is published (or if the
  * database can't be reached) the built-in Ages 6–8 and 9–12 cards show.
  */
-export async function AgeGroups({ anchor = true }: { anchor?: boolean } = {}) {
+export async function AgeGroups() {
   await connection();
   let heading = "";
   let cards = BUILT_IN_CARDS;
@@ -57,7 +57,7 @@ export async function AgeGroups({ anchor = true }: { anchor?: boolean } = {}) {
   }
 
   return (
-    <AgeGroupsLayout heading={heading || AGE_GROUPS.heading} count={cards.length} anchor={anchor}>
+    <AgeGroupsLayout heading={heading || AGE_GROUPS.heading} count={cards.length}>
       {cards.map((card, index) => (
         <Reveal key={card.key} delay={index * 0.1} className="h-full">
           <Link
@@ -88,9 +88,9 @@ export async function AgeGroups({ anchor = true }: { anchor?: boolean } = {}) {
 }
 
 /** Holds the section's space while the cards load. */
-export function AgeGroupsLoading({ anchor = true }: { anchor?: boolean } = {}) {
+export function AgeGroupsLoading() {
   return (
-    <AgeGroupsLayout heading={AGE_GROUPS.heading} count={2} busy anchor={anchor}>
+    <AgeGroupsLayout heading={AGE_GROUPS.heading} count={2} busy>
       {BUILT_IN_CARDS.map((card) => (
         <div key={card.key} className="min-h-[640px] rounded-[40px] bg-stone/60 shadow-card" />
       ))}
@@ -102,17 +102,15 @@ function AgeGroupsLayout({
   heading,
   count,
   busy,
-  anchor = true,
   children,
 }: {
   heading: string;
   count: number;
   busy?: boolean;
-  anchor?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <section id={anchor ? SECTION_IDS.ageGroups : undefined} aria-busy={busy || undefined} className="bg-paper">
+    <section id={SECTION_IDS.ageGroups} aria-busy={busy || undefined} className="bg-paper">
       <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-[51px] sm:px-8 lg:pb-[160px]">
         <Reveal>
           <h2 className="fluid-heading text-center font-display font-bold text-ink">{heading}</h2>

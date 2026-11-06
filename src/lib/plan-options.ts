@@ -1,5 +1,9 @@
 import type { PlanCardContent, PlanOptionContent } from "@/lib/content";
 
+/** The plan band's wording when the admin leaves it empty. Checkout always adds GST, so the band says so. */
+export const DEFAULT_PRICE_NOTE = "plus GST";
+export const DEFAULT_FOOTNOTE = "Switch or cancel anytime";
+
 /** Billing-period labels for the common durations; others read "N months". */
 const PERIODS: Record<number, string> = { 1: "month", 3: "quarter", 12: "year" };
 
