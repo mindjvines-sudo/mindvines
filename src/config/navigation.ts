@@ -3,17 +3,17 @@ import type { Resource } from "@/lib/permissions";
 // Public-site navigation lives in components/layout/Header.tsx and buildMenu in
 // @/lib/content. This file defines the admin sidebar.
 
-export type AdminNavGroup = "Subscription Management" | "Customers" | "Website content" | "System";
+export type AdminNavGroup = "Subscription Management" | "Location Management" | "Customers" | "Website content" | "System";
 
 /** Sidebar icons, by name (see components/admin/admin-shell). */
 export type AdminNavIcon =
   | "registrations" | "active" | "expiring" | "expired" | "pending" | "cancelled"
-  | "plans" | "programmes" | "topics" | "enquiries" | "testimonials" | "ageGroups" | "blog" | "media" | "settings";
+  | "plans" | "programmes" | "topics" | "enquiries" | "testimonials" | "ageGroups" | "locations" | "addLocation" | "directory" | "blog" | "media" | "settings";
 
 export type AdminNavItem = { label: string; href: string; resource: Resource; group: AdminNavGroup; icon: AdminNavIcon };
 
 /** Sidebar section order; groups with no visible items are skipped. */
-export const ADMIN_NAV_GROUPS: AdminNavGroup[] = ["Subscription Management", "Customers", "Website content", "System"];
+export const ADMIN_NAV_GROUPS: AdminNavGroup[] = ["Subscription Management", "Location Management", "Customers", "Website content", "System"];
 
 // `resource` maps to lib/permissions.ts so the admin layout can filter this
 // list down to what the signed-in user's role is actually allowed to see.
@@ -29,6 +29,9 @@ export const adminNavigation: AdminNavItem[] = [
   { label: "Subscription Plans", href: "/admin/subscriptions", resource: "subscriptions", group: "Subscription Management", icon: "plans" },
   { label: "Programme Management", href: "/admin/programmes", resource: "programmes", group: "Subscription Management", icon: "programmes" },
   { label: "Topic Management", href: "/admin/topics", resource: "topics", group: "Subscription Management", icon: "topics" },
+  { label: "Serviceable Locations", href: "/admin/locations", resource: "locations", group: "Location Management", icon: "locations" },
+  { label: "Add Pincode", href: "/admin/locations/new", resource: "locations", group: "Location Management", icon: "addLocation" },
+  { label: "Location Directory", href: "/admin/locations/directory", resource: "locations", group: "Location Management", icon: "directory" },
   { label: "Enquiries", href: "/admin/enquiries", resource: "enquiries", group: "Customers", icon: "enquiries" },
   { label: "Testimonials", href: "/admin/testimonials", resource: "testimonials", group: "Customers", icon: "testimonials" },
   { label: "Age Groups", href: "/admin/age-groups", resource: "ageGroups", group: "Website content", icon: "ageGroups" },
@@ -44,13 +47,14 @@ export const adminNavigation: AdminNavItem[] = [
  * Registrations" on ?state=ACTIVE).
  */
 export function activeNavHref(items: { href: string }[], pathname: string, query: URLSearchParams) {
-  let best: { href: string; score: number } | null = null;
+  let best: { href: string; score: number; depth: number } | null = null;
   for (const item of items) {
     const [path, search = ""] = item.href.split("?");
     if (pathname !== path && !pathname.startsWith(`${path}/`)) continue;
     const wanted = [...new URLSearchParams(search).entries()];
     if (wanted.some(([key, value]) => query.get(key) !== value)) continue;
-    if (!best || wanted.length > best.score) best = { href: item.href, score: wanted.length };
+    // More matching query values win; then the deeper path ("/locations/new" over "/locations").
+    if (!best || wanted.length > best.score || (wanted.length === best.score && path.length > best.depth)) best = { href: item.href, score: wanted.length, depth: path.length };
   }
   return best?.href ?? null;
 }

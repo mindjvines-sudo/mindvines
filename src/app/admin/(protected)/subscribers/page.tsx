@@ -138,6 +138,25 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
               </select>
             </label>
             <label className={label}>
+              City
+              <select name="city" defaultValue={filters.city ?? ""} className={inputClasses(false, "h-10")}>
+                <option value="">All cities</option>
+                {options.cities.map((city) => <option key={city} value={city}>{city}</option>)}
+              </select>
+            </label>
+            <label className={label}>
+              Pincode
+              <input type="search" name="pincode" inputMode="numeric" defaultValue={filters.pincode} placeholder="Starts with…" className={inputClasses(false, "h-10")} />
+            </label>
+            <label className={label}>
+              Child&apos;s age (min)
+              <input type="number" name="ageMin" min={0} max={99} defaultValue={filters.ageMin} placeholder="e.g. 6" className={inputClasses(false, "h-10")} />
+            </label>
+            <label className={label}>
+              Child&apos;s age (max)
+              <input type="number" name="ageMax" min={0} max={99} defaultValue={filters.ageMax} placeholder="e.g. 12" className={inputClasses(false, "h-10")} />
+            </label>
+            <label className={label}>
               Sort by
               <select name="sort" defaultValue={filters.sort ?? "newest"} className={inputClasses(false, "h-10")}>
                 {Object.entries(SORTS).map(([value, sort]) => <option key={value} value={value}>{sort.label}</option>)}

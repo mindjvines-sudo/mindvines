@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { clientIp } from "@/lib/client-ip";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { RegistrationError, saveRegistrationDetails } from "@/services/registration.service";
+import { NotServiceableError } from "@/services/location.service";
+import { RegistrationError, RegistrationFieldError, saveRegistrationDetails } from "@/services/registration.service";
 import { registrationDetailsSchema, saveDetailsRequestSchema } from "@/validations/registration.schema";
 
 /** Page 1 of the registration form: saves (or updates) the draft and returns its id and secret token. */
@@ -21,6 +22,11 @@ export async function POST(request: Request) {
     const { registrationId, token, planId } = body.data;
     return NextResponse.json(await saveRegistrationDetails({ registrationId, token, planId, details: details.data }));
   } catch (error) {
+    // Not a place we register from: refused here, whatever the browser's form did.
+    if (error instanceof NotServiceableError) {
+      return NextResponse.json({ error: error.message, code: "NOT_SERVICEABLE", fields: { postalCode: [error.message] } }, { status: 403 });
+    }
+    if (error instanceof RegistrationFieldError) return NextResponse.json({ error: error.message, fields: error.fields }, { status: 400 });
     if (error instanceof RegistrationError) return NextResponse.json({ error: error.message, code: error.code }, { status: 409 });
     console.error("Could not save registration", error);
     return NextResponse.json({ error: "We couldn't save your details. Please try again." }, { status: 500 });

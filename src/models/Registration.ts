@@ -44,6 +44,13 @@ const registrationSchema = new Schema(
       line2: { type: String, trim: true },
       city: { type: String, required: true, trim: true },
       postalCode: { type: String, required: true, trim: true },
+      // Filled from the serviceable-locations master when the pincode is verified.
+      // Older registrations have none of these; they keep their address as entered.
+      state: { type: String, trim: true },
+      district: { type: String, trim: true },
+      postOffice: { type: String, trim: true },
+      location: { type: Schema.Types.ObjectId, ref: "ServiceableLocation" },
+      locationVerifiedAt: { type: Date },
     },
     consents: {
       terms: consent,

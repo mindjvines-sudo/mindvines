@@ -2,7 +2,7 @@ import "server-only";
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import { isValidObjectId, type Types } from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
-import { countryName, findCountry } from "@/lib/countries";
+import { findCountry } from "@/lib/countries";
 import { DRAFT_LIFETIME_DAYS, newRegistrationReference } from "@/lib/registration-status";
 import { DAY_MS } from "@/lib/subscription-status";
 import { checkTopicPicks } from "@/lib/topics";
@@ -11,6 +11,7 @@ import { Registration } from "@/models/Registration";
 import { Subscription } from "@/models/Subscription";
 import { SubscriptionPlan } from "@/models/SubscriptionPlan";
 import { listPreferenceCategories } from "@/services/topic.service";
+import { LocationError, verifiedAddressFields, verifyServiceable } from "@/services/location.service";
 import type { RegistrationDetails, RegistrationPreferences } from "@/validations/registration.schema";
 
 export class RegistrationError extends Error {
@@ -75,6 +76,11 @@ export async function saveRegistrationDetails(params: {
   const programme = plan.programme ? await Programme.findById(plan.programme).select("name categories").lean() : null;
 
   const { details } = params;
+  // The pincode must be one the admin has switched on. City, state and district come from the master list, not the browser.
+  const verified = await verifiedAddressFields({ countryCode: details.countryCode, pincode: details.postalCode, postOffice: details.postOffice }).catch((error) => {
+    if (error instanceof LocationError && error.code === "INVALID") throw new RegistrationFieldError({ postOffice: [error.message] });
+    throw error;
+  });
   const phoneCountry = findCountry(details.phoneCountry)!;
   const now = new Date();
   const fields = {
@@ -90,12 +96,9 @@ export async function saveRegistrationDetails(params: {
       phone: details.phone,
     },
     address: {
-      countryCode: details.countryCode,
-      country: countryName(details.countryCode),
+      ...verified.fields,
       line1: details.addressLine1,
       line2: details.addressLine2 || undefined,
-      city: details.city,
-      postalCode: details.postalCode,
     },
     expiresAt: new Date(now.getTime() + DRAFT_LIFETIME_DAYS * DAY_MS),
   };
@@ -195,6 +198,9 @@ export async function saveRegistrationPreferences(params: { registrationId: stri
 export async function loadRegistrationForPayment(registrationId: string, token: string) {
   await connectToDatabase();
   const registration = await loadOwnDraft(registrationId, token);
+  // Checked again here, not just when the details were saved: the pincode may have been switched off since.
+  // (A payment already made is never undone by this; renewals of existing children don't come through here.)
+  if (registration.address) await verifyServiceable({ countryCode: registration.address.countryCode, pincode: registration.address.postalCode });
   const preferences = registration.preferences;
   if (!preferences?.savedAt || !preferences.nickname) {
     throw new RegistrationFieldError({ nickname: ["Please add your child's nickname and topics."] });

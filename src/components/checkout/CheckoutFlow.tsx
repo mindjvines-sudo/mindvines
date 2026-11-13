@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { DEFAULT_COUNTRY, countriesByName, findCountry } from "@/lib/countries";
+import { NOT_SERVICEABLE_MESSAGE } from "@/lib/locations/pincode";
 import { formatPaise } from "@/lib/subscription-status";
 import { checkTopicPicks } from "@/lib/topics";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,13 @@ type Plan = {
 type Amounts = { baseAmount: number; taxAmount: number; totalAmount: number };
 type Step = "details" | "preferences" | "payment";
 type Errors = Record<string, string | undefined>;
+/** The server's verdict on the address's pincode. Only "ok" lets the form continue; the server checks again on save and at payment. */
+type Place =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "ok"; state: string; district: string; city: string; postOffices: string[] }
+  | { status: "blocked"; message: string }
+  | { status: "error"; message: string };
 
 
 type Details = {
@@ -36,6 +44,7 @@ type Details = {
   addressLine2: string;
   city: string;
   postalCode: string;
+  postOffice: string;
   phoneCountry: string;
   phone: string;
   email: string;
@@ -64,6 +73,7 @@ const EMPTY_DETAILS: Details = {
   addressLine2: "",
   city: "",
   postalCode: "",
+  postOffice: "",
   phoneCountry: DEFAULT_COUNTRY,
   phone: "",
   email: "",
@@ -170,6 +180,50 @@ export function CheckoutFlow({
 
   const { details } = saved;
 
+  // Check the pincode with the server as soon as it is complete; city, state and district come back from there.
+  // The verdict is kept with the pincode it answers, so a stale answer is never shown for a newer value.
+  const [verdict, setVerdict] = useState<{ pincode: string; place: Place } | null>(null);
+  const pincode = details.postalCode.replace(/\s/g, "");
+  const isIndia = details.countryCode === "IN";
+  const validPincode = /^[1-9]\d{5}$/.test(pincode);
+  const place: Place = !isIndia
+    ? { status: "blocked", message: NOT_SERVICEABLE_MESSAGE }
+    : !validPincode
+      ? { status: "idle" }
+      : verdict?.pincode === pincode
+        ? verdict.place
+        : { status: "checking" };
+  useEffect(() => {
+    if (!hydrated || !isIndia || !validPincode) return;
+    let current = true;
+    post("/api/registrations/validate-location", { countryCode: "IN", pincode })
+      .then(({ ok, data }) => {
+        if (!current) return;
+        if (ok && data.serviceable) {
+          const offices = (data.postOffices as string[] | undefined) ?? [];
+          setVerdict({ pincode, place: { status: "ok", state: String(data.state), district: String(data.district), city: String(data.city), postOffices: offices } });
+          setSaved((previous) => ({
+            ...previous,
+            details: {
+              ...previous.details,
+              city: String(data.city),
+              postOffice: offices.includes(previous.details.postOffice) ? previous.details.postOffice : offices.length === 1 ? offices[0] : "",
+            },
+          }));
+        } else if (data.serviceable === false) {
+          setVerdict({ pincode, place: { status: "blocked", message: String(data.error ?? NOT_SERVICEABLE_MESSAGE) } });
+        } else {
+          setVerdict({ pincode, place: { status: "error", message: String(data.error ?? "We couldn't check this pincode. Please try again.") } });
+        }
+      })
+      .catch(() => {
+        if (current) setVerdict({ pincode, place: { status: "error", message: "We couldn't check this pincode. Check your connection and try again." } });
+      });
+    return () => {
+      current = false;
+    };
+  }, [hydrated, isIndia, validPincode, pincode]);
+
   // What was typed survives going back, a reload or a failed payment.
   useEffect(() => {
     try {
@@ -204,6 +258,12 @@ export function CheckoutFlow({
 
   async function submitDetails(event: React.FormEvent) {
     event.preventDefault();
+    if (place.status === "blocked" || place.status === "error" || place.status === "checking") {
+      const message = place.status === "checking" ? "Checking your pincode…" : place.message;
+      setErrors({ postalCode: message });
+      focusFirstError({ postalCode: message }, ["postalCode"]);
+      return;
+    }
     const parsed = registrationDetailsSchema.safeParse(details);
     if (!parsed.success) {
       const found = firstErrors(parsed.error.flatten().fieldErrors);
@@ -305,7 +365,7 @@ export function CheckoutFlow({
       {plan.description && <p className="mt-2 whitespace-pre-line text-[16px] leading-relaxed">{plan.description}</p>}
       <ul className="mt-5 space-y-2 text-[16px]">
         <li className="font-bold">{duration}</li>
-        <li className="font-bold">{plan.journalCount} {plan.journalCount === 1 ? "journal" : "journals"} included</li>
+        <li className="font-bold">{plan.journalCount} {plan.journalCount === 1 ? "cycle" : "cycles"} included</li>
         {plan.features.map((feature, index) => (
           <li key={index} className="flex gap-3"><span aria-hidden className="font-bold">✓</span><span>{feature}</span></li>
         ))}
@@ -459,12 +519,40 @@ export function CheckoutFlow({
               className={cn(INPUT, "py-3")}
             />
           </FormField>
-          <FormField id="f-city" label="City" required error={errors.city}>
-            {text("city", { autoComplete: "address-level2" })}
+          <FormField id="f-postalCode" label="PIN code" required error={errors.postalCode ?? (place.status === "blocked" || place.status === "error" ? place.message : undefined)}>
+            {text("postalCode", { autoComplete: "postal-code", inputMode: "numeric", maxLength: 12 })}
           </FormField>
-          <FormField id="f-postalCode" label="ZIP / Postal code" required error={errors.postalCode}>
-            {text("postalCode", { autoComplete: "postal-code" })}
-          </FormField>
+          {place.status === "ok" && (
+            <>
+              <FormField id="f-city" label="City / Town" hint="Filled in from your PIN code.">
+                <input id="f-city" name="city" value={place.city} readOnly className={cn(INPUT, "h-12 bg-stone")} />
+              </FormField>
+              <FormField id="f-district" label="District">
+                <input id="f-district" value={place.district} readOnly className={cn(INPUT, "h-12 bg-stone")} />
+              </FormField>
+              <FormField id="f-state" label="State">
+                <input id="f-state" value={place.state} readOnly className={cn(INPUT, "h-12 bg-stone")} />
+              </FormField>
+              {place.postOffices.length > 1 && (
+                <FormField id="f-postOffice" label="Post office" error={errors.postOffice}>
+                  <select
+                    id="f-postOffice"
+                    name="postOffice"
+                    value={details.postOffice}
+                    onChange={(event) => setDetail("postOffice", event.target.value)}
+                    className={cn(INPUT, "h-12")}
+                  >
+                    <option value="">Choose your post office</option>
+                    {place.postOffices.map((office) => <option key={office} value={office}>{office}</option>)}
+                  </select>
+                </FormField>
+              )}
+            </>
+          )}
+          {place.status === "checking" && <p role="status" className="text-[15px] text-ink/70 sm:col-span-2">Checking your PIN code…</p>}
+          {place.status === "blocked" && (
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[16px] font-bold text-red-800 sm:col-span-2">{place.message}</p>
+          )}
         </Section>
 
         <Section title="Contact">
@@ -514,7 +602,7 @@ export function CheckoutFlow({
 
         {alert}
         <div className="mt-8 flex flex-wrap gap-3">
-          <button type="submit" disabled={busy} className={primary}>{busy ? "Saving…" : "Continue"}</button>
+          <button type="submit" disabled={busy || place.status === "blocked"} className={primary}>{busy ? "Saving…" : "Continue"}</button>
           <Link href={plansHref} className={secondary}>Previous</Link>
         </div>
       </form>

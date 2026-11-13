@@ -16,12 +16,12 @@ export function Footer() {
           <ul className="flex flex-col items-center gap-3 lg:grid lg:grid-cols-3">
             {FOOTER_LINKS.map((link) => (
               <li key={link.href} className="text-center">
-                <a
+                <Link
                   href={link.href}
                   className="text-[18px] font-bold text-tan underline underline-offset-[3px] transition-colors hover:text-ink lg:text-[20px]"
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

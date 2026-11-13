@@ -6,9 +6,6 @@
 
 import { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 
-/** Pages that live on the current Wix site and have no counterpart here yet. */
-const LIVE = "https://www.mindvines.in";
-
 export const SITE = {
   name: "Mindvines",
   tagline: "A shared journal programme for ages 6-12",
@@ -35,7 +32,8 @@ export const SECTION_IDS = {
   contact: "contact",
 } as const;
 
-export const REGISTER_HREF = `${LIVE}/blank-7`;
+/** Registration starts in this app: choose a plan, then the checkout form. */
+export const REGISTER_HREF = "/subscriptions";
 
 /** A menu entry is either a link or a group that expands to show its links. */
 export type MenuItem =
@@ -61,7 +59,7 @@ export function buildMenu(agePages: { ageGroup: string; slug: string }[]): MenuI
     { label: "Renew subscription", href: "/renew" },
     { label: "FAQ", href: `/#${SECTION_IDS.faq}` },
     { label: "Contact us", href: `/#${SECTION_IDS.contact}` },
-    { label: "Registration", href: `${LIVE}/blank-6` },
+    { label: "Registration", href: REGISTER_HREF },
   ];
   return menu.filter((item) => !item.children || item.children.length > 0);
 }
@@ -405,7 +403,7 @@ export const CONTACT = {
 } as const;
 
 export const FOOTER_LINKS = [
-  { label: "Terms and Conditions", href: `${LIVE}/blank-3` },
-  { label: "Refund and Cancellation Policy", href: `${LIVE}/blank-2` },
-  { label: "Privacy Policy", href: `${LIVE}/blank-4` },
+  { label: "Terms and Conditions", href: "/terms" },
+  { label: "Refund and Cancellation Policy", href: "/refund-policy" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
 ] as const;

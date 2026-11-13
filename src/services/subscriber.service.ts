@@ -24,6 +24,10 @@ export const SORTS = {
   expiry: { label: "Expiring soonest first", order: { expiryDate: 1, createdAt: -1 } },
   child: { label: "Child's name, A–Z", order: { "registration.childName": 1, createdAt: -1 } },
   parent: { label: "Parent's name, A–Z", order: { "registration.name": 1, createdAt: -1 } },
+  pincode: { label: "Pincode, low to high", order: { "registration.address.postalCode": 1, createdAt: -1 } },
+  city: { label: "City, A–Z", order: { "registration.address.city": 1, createdAt: -1 } },
+  ageYoungest: { label: "Child's age, youngest first", order: { "registration.childDob": -1, createdAt: -1 } },
+  ageOldest: { label: "Child's age, oldest first", order: { "registration.childDob": 1, createdAt: -1 } },
 } as const;
 export type SubscriptionSort = keyof typeof SORTS;
 
@@ -35,6 +39,10 @@ export type SubscriptionFilters = {
   payment?: PaymentStatus;
   school?: string;
   country?: string;
+  city?: string;
+  pincode?: string;
+  ageMin?: string;
+  ageMax?: string;
   registeredFrom?: string;
   registeredTo?: string;
   startFrom?: string;
@@ -50,6 +58,7 @@ const MAX_EXPORT_ROWS = 5000;
 /** Reads the filters out of a URL's query, ignoring anything that isn't a known value. */
 export function parseSubscriptionFilters(params: Record<string, string | undefined>): SubscriptionFilters {
   const date = (value?: string) => (value && DATE.test(value) && !Number.isNaN(Date.parse(value)) ? value : undefined);
+  const age = (value?: string) => (value && /^\d{1,2}$/.test(value) ? String(Number(value)) : undefined);
   return {
     search: params.search?.trim().slice(0, 80) || undefined,
     plan: params.plan && isValidObjectId(params.plan) ? params.plan : undefined,
@@ -58,6 +67,10 @@ export function parseSubscriptionFilters(params: Record<string, string | undefin
     payment: PAYMENT_STATUSES.find((status) => status === params.payment),
     school: params.school?.trim().slice(0, 80) || undefined,
     country: params.country && /^[A-Z]{2}$/.test(params.country) ? params.country : undefined,
+    city: params.city?.trim().slice(0, 80) || undefined,
+    pincode: params.pincode?.trim().slice(0, 12) || undefined,
+    ageMin: age(params.ageMin),
+    ageMax: age(params.ageMax),
     registeredFrom: date(params.registeredFrom),
     registeredTo: date(params.registeredTo),
     startFrom: date(params.startFrom),
@@ -93,6 +106,24 @@ async function buildQuery(filters: SubscriptionFilters, now: Date) {
   if (filters.programme) and.push({ "planSnapshot.programme": filters.programme });
   if (filters.school) and.push({ "registration.school": { $regex: escapeRegex(filters.school), $options: "i" } });
   if (filters.country) and.push({ "registration.address.countryCode": filters.country });
+  if (filters.city) and.push({ "registration.address.city": { $regex: `^${escapeRegex(filters.city)}$`, $options: "i" } });
+  if (filters.pincode) and.push({ "registration.address.postalCode": { $regex: `^${escapeRegex(filters.pincode)}`, $options: "i" } });
+  if (filters.ageMin || filters.ageMax) {
+    // DOB is a YYYY-MM-DD string, so an age range is a range of birthdays.
+    const today = new Date();
+    const birthdayFor = (years: number, dayOffset: number) => {
+      const d = new Date(Date.UTC(today.getFullYear() - years, today.getMonth(), today.getDate() + dayOffset));
+      return d.toISOString().slice(0, 10);
+    };
+    and.push({
+      "registration.childDob": {
+        // At least N years old: born on or before this day N years ago.
+        ...(filters.ageMin && { $lte: birthdayFor(Number(filters.ageMin), 0) }),
+        // At most M years old: not yet turned M+1, i.e. born after the day M+1 years ago.
+        ...(filters.ageMax && { $gt: birthdayFor(Number(filters.ageMax) + 1, 0) }),
+      },
+    });
+  }
   if (filters.registeredFrom || filters.registeredTo) {
     and.push({
       createdAt: {
@@ -202,16 +233,18 @@ export async function listSubscriptionsForExport(filters: SubscriptionFilters) {
 /** The programmes and countries registrations have, for the list's filters. */
 export async function listRegistrationFilterOptions() {
   await connectToDatabase();
-  const [programmes, countries] = await Promise.all([
+  const [programmes, countries, cities] = await Promise.all([
     Subscription.distinct("planSnapshot.programme"),
     Subscription.aggregate<{ _id: string; name: string }>([
       { $match: { "registration.address.countryCode": { $nin: [null, ""] } } },
       { $group: { _id: "$registration.address.countryCode", name: { $first: "$registration.address.country" } } },
       { $sort: { name: 1 } },
     ]),
+    Subscription.distinct("registration.address.city"),
   ]);
   return {
     programmes: (programmes.filter(Boolean) as string[]).sort(),
+    cities: (cities.filter(Boolean) as string[]).sort((a, b) => a.localeCompare(b)),
     countries: countries.map((row) => ({ code: row._id, name: row.name || row._id })),
   };
 }

@@ -87,6 +87,9 @@ async function openOrder(
       line: [address.line1, address.line2].filter(Boolean).join(", "),
       city: address.city,
       postalCode: address.postalCode,
+      state: address.state ?? undefined,
+      district: address.district ?? undefined,
+      postOffice: address.postOffice ?? undefined,
     },
     consents: {
       terms: consents?.terms?.given ?? false,

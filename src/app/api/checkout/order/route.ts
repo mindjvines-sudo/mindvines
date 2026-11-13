@@ -3,6 +3,7 @@ import { clientIp } from "@/lib/client-ip";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { RazorpayConfigError } from "@/lib/razorpay";
 import { CheckoutError, createCheckoutOrder } from "@/services/checkout.service";
+import { NotServiceableError } from "@/services/location.service";
 import { RegistrationError, RegistrationFieldError } from "@/services/registration.service";
 import { startPaymentRequestSchema } from "@/validations/registration.schema";
 
@@ -19,6 +20,9 @@ export async function POST(request: Request) {
   try {
     return NextResponse.json(await createCheckoutOrder(parsed.data.registrationId, parsed.data.token));
   } catch (error) {
+    if (error instanceof NotServiceableError) {
+      return NextResponse.json({ error: error.message, code: "NOT_SERVICEABLE", fields: { postalCode: [error.message] } }, { status: 403 });
+    }
     if (error instanceof RegistrationFieldError) return NextResponse.json({ error: error.message, fields: error.fields }, { status: 400 });
     if (error instanceof RegistrationError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.code === "COMPLETED" ? 409 : 404 });
     if (error instanceof CheckoutError) return NextResponse.json({ error: error.message }, { status: 409 });

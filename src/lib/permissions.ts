@@ -19,6 +19,8 @@ export const RESOURCES = [
   "redirects",
   "settings",
   "auditLogs",
+  // Which pincodes may register children. Not in any role's matrix: Super Admin only.
+  "locations",
 ] as const;
 export type Resource = (typeof RESOURCES)[number];
 

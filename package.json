@@ -14,6 +14,8 @@
     "test:payments": "tsx --test tests/payments.test.ts",
     "test:email": "tsx --conditions=react-server --test tests/email.test.ts tests/subscriber-email.test.ts",
     "test:auth": "tsx --conditions=react-server --test tests/auth.test.ts",
+    "setup:locations": "tsx --conditions=react-server scripts/setup-locations.ts",
+    "test:locations": "tsx --conditions=react-server --test tests/locations.test.ts",
     "test:recovery": "tsx --conditions=react-server --test tests/registration-recovery.test.ts"
   },
   "dependencies": {

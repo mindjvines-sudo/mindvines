@@ -37,6 +37,8 @@ export const registrationDetailsSchema = z
     addressLine2: z.string().trim().max(200, "This is too long").optional().default(""),
     city: z.string().trim().min(2, "Enter the city").max(60),
     postalCode: z.string().trim().min(1, "Enter the postal code").max(12),
+    // Chosen from the pincode's post offices. State, district and city are filled in by the server from the verified pincode.
+    postOffice: z.string().trim().max(120).optional().default(""),
     phoneCountry: z.string().trim().length(2, "Choose the country code"),
     phone: z.string().trim().min(1, "Enter a mobile number").max(24),
     email: z.string().trim().toLowerCase().email("Enter a valid email address").max(120),

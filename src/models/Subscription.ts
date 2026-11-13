@@ -41,6 +41,9 @@ const subscriptionSchema = new Schema(
         line: { type: String, trim: true },
         city: { type: String, trim: true },
         postalCode: { type: String, trim: true },
+        state: { type: String, trim: true },
+        district: { type: String, trim: true },
+        postOffice: { type: String, trim: true },
       },
       // Topic titles as they read when chosen, so later edits in Admin → Topics don't change them.
       topics: {

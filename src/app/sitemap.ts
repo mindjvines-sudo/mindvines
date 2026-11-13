@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: siteConfig.url, lastModified: new Date() },
     { url: `${siteConfig.url}/subscriptions`, lastModified: new Date() },
+    ...["terms", "refund-policy", "privacy-policy"].map((slug) => ({ url: `${siteConfig.url}/${slug}`, lastModified: new Date() })),
     ...ageGroups.map((group) => ({ url: `${siteConfig.url}/age-groups/${group.slug}`, lastModified: group.updatedAt })),
   ];
 }
