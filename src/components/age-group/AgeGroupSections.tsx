@@ -331,6 +331,8 @@ export function AgeGroupPricing({
       highlight: card.highlight,
       buttonLabel: card.buttonLabel || "Subscribe now",
       buttonHref: card.buttonHref || REGISTER_HREF,
+      disabled: card.disabled,
+      disabledMessage: card.disabledMessage,
     })),
   }));
 

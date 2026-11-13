@@ -1,3 +1,4 @@
+import { disabledMessage, planAvailability, type PlanControls } from "@/lib/plan-availability";
 import type { PlanCardContent, PlanOptionContent } from "@/lib/content";
 
 /** The plan band's wording when the admin leaves it empty. Checkout always adds GST, so the band says so. */
@@ -16,7 +17,7 @@ export type PublishedPlan = {
   buttonLabel?: string | null;
   featured: boolean;
   displayOrder?: number | null;
-};
+} & Partial<Omit<PlanControls, "status">>;
 
 function toCard(plan: PublishedPlan): PlanCardContent {
   return {
@@ -27,6 +28,8 @@ function toCard(plan: PublishedPlan): PlanCardContent {
     highlight: plan.featured,
     buttonLabel: plan.buttonLabel || "Subscribe now",
     buttonHref: `/checkout/${plan._id.toString()}`,
+    // A visible card whose button is switched off says why, and links nowhere.
+    ...(planAvailability({ ...plan, status: "PUBLISHED" }) === "BUTTON_DISABLED" && { disabled: true, disabledMessage: disabledMessage(plan) }),
   };
 }
 

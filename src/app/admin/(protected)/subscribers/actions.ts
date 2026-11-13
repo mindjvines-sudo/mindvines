@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/dal";
 import { can } from "@/lib/permissions";
 import { logAction } from "@/services/audit.service";
 import { sendRenewalReminder } from "@/services/reminder.service";
-import { cancelSubscription } from "@/services/subscriber.service";
+import { cancelSubscription, setTopicSent } from "@/services/subscriber.service";
 
 export async function cancelSubscriptionAction(id: string): Promise<void> {
   const user = await getCurrentUser();
@@ -25,4 +25,14 @@ export async function sendRenewalReminderAction(id: string): Promise<{ ok: boole
   await logAction({ userId: user.id, action: "UPDATE", entity: "Subscription", entityId: id, metadata: { change: "renewal reminder sent" } });
   revalidatePath("/admin/subscribers", "layout");
   return { ok: true, message: `Reminder sent to ${result.email}.` };
+}
+
+/** Ticks a topic as already sent to the child, so the same book isn't sent twice. */
+export async function setTopicSentAction(registrationId: string, categoryId: string, topicId: string, sent: boolean): Promise<{ ok: boolean }> {
+  const user = await getCurrentUser();
+  if (!can(user.role, "update", "subscribers")) return { ok: false };
+  const ok = await setTopicSent(registrationId, categoryId, topicId, sent);
+  if (ok) await logAction({ userId: user.id, action: "UPDATE", entity: "Registration", entityId: registrationId, metadata: { change: sent ? "topic marked sent" : "topic unmarked", topic: topicId } });
+  revalidatePath("/admin/subscribers", "layout");
+  return { ok };
 }

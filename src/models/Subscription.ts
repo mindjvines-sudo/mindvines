@@ -16,6 +16,9 @@ const subscriptionSchema = new Schema(
     // True for a renewal of an existing registration (same child, same reference).
     renewal: { type: Boolean, default: false },
     plan: { type: Schema.Types.ObjectId, ref: "SubscriptionPlan", required: true },
+    // Older subscriptions have neither field and are STANDARD. A PILOT one was bought through a pilot offer, at its price and duration.
+    subscriptionType: { type: String, enum: ["STANDARD", "PILOT"], default: "STANDARD" },
+    pilotPlan: { type: Schema.Types.ObjectId, ref: "PilotPlan" },
     planSnapshot: {
       name: { type: String, required: true },
       ageGroup: { type: String, required: true },
@@ -81,6 +84,7 @@ subscriptionSchema.index({ plan: 1 });
 subscriptionSchema.index({ "registration.email": 1, plan: 1 });
 subscriptionSchema.index({ registrationId: 1, status: 1 });
 subscriptionSchema.index({ reference: 1 });
+subscriptionSchema.index({ subscriptionType: 1, pilotPlan: 1 });
 
 export type SubscriptionDocument = InferSchemaType<typeof subscriptionSchema>;
 

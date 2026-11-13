@@ -17,6 +17,10 @@ function parseInput(formData: FormData) {
   return subscriptionInputSchema.safeParse({
     ...Object.fromEntries(formData),
     featured: formData.get("featured") === "on",
+    // Checkboxes: unticked sends nothing, which means off.
+    subscriptionActive: formData.get("subscriptionActive") === "on",
+    cardVisible: formData.get("cardVisible") === "on",
+    subscribeEnabled: formData.get("subscribeEnabled") === "on",
     features: String(formData.get("features") ?? "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
   });
 }
@@ -24,6 +28,7 @@ function parseInput(formData: FormData) {
 function revalidatePlans() {
   revalidatePath("/admin/subscriptions", "layout");
   revalidatePath("/subscriptions");
+  revalidatePath("/age-groups", "layout");
   revalidatePath("/");
 }
 
@@ -39,7 +44,7 @@ export async function createSubscriptionAction(_prev: SubscriptionFormState, for
     return { errors: { name: ["A plan with this name already exists for this age group and duration."] } };
   }
   try {
-    const plan = await subscriptions.createSubscriptionPlan(result.data);
+    const plan = await subscriptions.createSubscriptionPlan(result.data, user.id);
     await logAction({ userId: user.id, action: "CREATE", entity: "SubscriptionPlan", entityId: plan._id.toString() });
   } catch {
     return { message: "Unable to save the subscription plan. Please try again." };
@@ -60,7 +65,7 @@ export async function updateSubscriptionAction(id: string, _prev: SubscriptionFo
     return { errors: { name: ["A plan with this name already exists for this age group and duration."] } };
   }
   try {
-    const plan = await subscriptions.updateSubscriptionPlan(id, result.data);
+    const plan = await subscriptions.updateSubscriptionPlan(id, result.data, user.id);
     if (!plan) return { message: "This subscription plan no longer exists." };
     await logAction({ userId: user.id, action: "UPDATE", entity: "SubscriptionPlan", entityId: id });
   } catch {

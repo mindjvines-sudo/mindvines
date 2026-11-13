@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { Card } from "@/components/admin/ui/card";
 import { Field, FormFooter, FormSection, Input, Select, Textarea } from "@/components/admin/ui/form";
 import { Alert } from "@/components/admin/ui/feedback";
@@ -18,6 +18,7 @@ export function SubscriptionForm({ action, defaultValues, submitLabel, programme
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const errors = state?.errors;
+  const [subscribeEnabled, setSubscribeEnabled] = useState(defaultValues?.subscribeEnabled ?? true);
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,6 +94,15 @@ export function SubscriptionForm({ action, defaultValues, submitLabel, programme
           </label>
         </FormSection>
 
+        <FormSection title="Subscription visibility & availability" description="Control new registrations for this plan without deleting it. Existing subscribers, payments and renewals are never affected, and switching a control back on restores the plan exactly as it was.">
+          <Toggle name="subscriptionActive" label="Subscription active" hint="Off: the plan is switched off for new registrations and its card is hidden." defaultChecked={defaultValues?.subscriptionActive ?? true} />
+          <Toggle name="cardVisible" label="Show subscription card" hint="Off: the card is removed from the website and the plan can't be reached by link or API." defaultChecked={defaultValues?.cardVisible ?? true} />
+          <Toggle name="subscribeEnabled" label="Subscribe button enabled" hint="Off: the card stays visible with its price, but can't be bought." defaultChecked={defaultValues?.subscribeEnabled ?? true} onChange={setSubscribeEnabled} />
+          <Field label="Disabled button message" htmlFor="disabledMessage" error={errors?.disabledMessage} hint={subscribeEnabled ? "Shown on the card when the button is disabled. Switch the button off to use it." : "Shown on the card in place of the button. Leave empty for “Registration currently unavailable.”"}>
+            <Input id="disabledMessage" name="disabledMessage" maxLength={160} defaultValue={defaultValues?.disabledMessage} invalid={!!errors?.disabledMessage} disabled={subscribeEnabled} placeholder="Registration currently unavailable." />
+          </Field>
+        </FormSection>
+
         <FormFooter>
           {state?.message && <Alert tone="error" className="sm:mr-auto">{state.message}</Alert>}
           <ButtonLink href="/admin/subscriptions" variant="secondary">Cancel</ButtonLink>
@@ -100,5 +110,19 @@ export function SubscriptionForm({ action, defaultValues, submitLabel, programme
         </FormFooter>
       </form>
     </Card>
+  );
+}
+
+/** A labelled on/off switch; unticked submits nothing, which the server reads as off. */
+function Toggle({ name, label, hint, defaultChecked, onChange }: { name: string; label: string; hint: string; defaultChecked: boolean; onChange?: (checked: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3">
+      <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0">
+        <input name={name} type="checkbox" role="switch" defaultChecked={defaultChecked} onChange={(event) => onChange?.(event.target.checked)} className="peer sr-only" />
+        <span aria-hidden className="absolute inset-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-primary-600 peer-focus-visible:ring-4 peer-focus-visible:ring-primary-500/25" />
+        <span aria-hidden className="absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+      </span>
+      <span className="text-sm text-slate-800"><span className="font-medium">{label}</span><span className="mt-0.5 block text-xs text-slate-500">{hint}</span></span>
+    </label>
   );
 }

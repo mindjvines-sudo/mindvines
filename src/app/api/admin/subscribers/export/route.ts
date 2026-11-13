@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       "Registration ID", "Child name", "Date of birth", "Child age", "School", "Nickname",
       "Parent name", "Email", "Mobile",
       "Country/Region", "Address", "City", "Postal code",
-      "Programme", "Plan", "Age group", "Duration (months)",
+      "Subscription type", "Programme", "Plan", "Age group", "Duration (months)",
       "Payment status", "Amount paid (INR)", "Razorpay order ID", "Razorpay payment ID", "Paid at",
       "Subscription status", "Start date", "Expiry date", "Days remaining", "Registered",
       "Terms accepted", "Terms accepted at", "Feature work online", "Feature work consent at", "WhatsApp news & offers", "WhatsApp consent at",
@@ -59,6 +59,7 @@ export async function GET(request: Request) {
         record?.address ? [record.address.line1, record.address.line2].filter(Boolean).join(", ") : snapshot?.address?.line,
         snapshot?.address?.city,
         snapshot?.address?.postalCode,
+        item.subscriptionType === "PILOT" ? "Pilot Subscription" : "Standard Subscription",
         item.planSnapshot?.programme,
         item.planSnapshot?.name,
         item.planSnapshot?.ageGroup,
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
         iso(consents?.featureWork?.at),
         yesNo(consents?.whatsappUpdates?.given ?? snapshot?.consents?.whatsappUpdates),
         iso(consents?.whatsappUpdates?.at),
-        ...categories.map((name) => selections.find((selection) => selection.categoryName === name)?.topics.map((topic) => topic.title).join("; ") ?? ""),
+        ...categories.map((name) => selections.find((selection) => selection.categoryName === name)?.topics.map((topic) => (topic.sent ? `${topic.title} [sent]` : topic.title)).join("; ") ?? ""),
       ];
     })
   );

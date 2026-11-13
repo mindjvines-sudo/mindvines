@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
     if (error instanceof RegistrationFieldError) return NextResponse.json({ error: error.message, fields: error.fields }, { status: 400 });
     if (error instanceof RegistrationError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.code === "COMPLETED" ? 409 : 404 });
-    if (error instanceof CheckoutError) return NextResponse.json({ error: error.message }, { status: 409 });
+    if (error instanceof CheckoutError) return NextResponse.json({ error: error.message, code: error.code }, { status: 409 });
     if (error instanceof RazorpayConfigError) console.error("Checkout is not configured:", error.message);
     else console.error("Could not create checkout order", error);
     return NextResponse.json({ error: "We couldn't start the payment. Please try again shortly." }, { status: 502 });

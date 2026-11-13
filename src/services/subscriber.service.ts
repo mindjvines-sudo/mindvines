@@ -16,6 +16,7 @@ import { Payment } from "@/models/Payment";
 import { Registration } from "@/models/Registration";
 import { Subscriber } from "@/models/Subscriber";
 import { Subscription } from "@/models/Subscription";
+import { cancelPilotPlace, releasePilotReservation } from "@/services/pilot.service";
 
 /** How the registration list can be ordered. */
 export const SORTS = {
@@ -37,6 +38,8 @@ export type SubscriptionFilters = {
   programme?: string;
   state?: SubscriptionState;
   payment?: PaymentStatus;
+  /** Standard subscriptions or pilot ones; unset means both. */
+  type?: "STANDARD" | "PILOT";
   school?: string;
   country?: string;
   city?: string;
@@ -65,6 +68,7 @@ export function parseSubscriptionFilters(params: Record<string, string | undefin
     programme: params.programme?.trim().slice(0, 80) || undefined,
     state: SUBSCRIPTION_STATES.find((state) => state === params.state),
     payment: PAYMENT_STATUSES.find((status) => status === params.payment),
+    type: params.type === "PILOT" || params.type === "STANDARD" ? params.type : undefined,
     school: params.school?.trim().slice(0, 80) || undefined,
     country: params.country && /^[A-Z]{2}$/.test(params.country) ? params.country : undefined,
     city: params.city?.trim().slice(0, 80) || undefined,
@@ -103,6 +107,9 @@ async function buildQuery(filters: SubscriptionFilters, now: Date) {
     });
   }
   if (filters.plan) and.push({ plan: filters.plan });
+  // Older subscriptions have no type and are standard.
+  if (filters.type === "PILOT") and.push({ subscriptionType: "PILOT" });
+  if (filters.type === "STANDARD") and.push({ subscriptionType: { $ne: "PILOT" } });
   if (filters.programme) and.push({ "planSnapshot.programme": filters.programme });
   if (filters.school) and.push({ "registration.school": { $regex: escapeRegex(filters.school), $options: "i" } });
   if (filters.country) and.push({ "registration.address.countryCode": filters.country });
@@ -167,7 +174,7 @@ type ListedPayment = {
 type Consent = { given?: boolean | null; at?: Date | null } | null | undefined;
 type ExportedRegistration = {
   consents?: { terms?: Consent; featureWork?: Consent; whatsappUpdates?: Consent } | null;
-  preferences?: { nickname?: string | null; selections?: { categoryName: string; topics: { title: string }[] }[] } | null;
+  preferences?: { nickname?: string | null; selections?: { categoryName: string; topics: { title: string; sent?: boolean | null }[] }[] } | null;
   address?: { line1?: string; line2?: string | null } | null;
 };
 
@@ -294,15 +301,39 @@ export async function getSubscriptionDetail(id: string) {
   };
 }
 
+/**
+ * Ticks (or unticks) a topic as already sent to this child. One atomic update
+ * on just that topic, so ticking different topics at once never overwrites
+ * each other, and nothing else on the registration changes.
+ */
+export async function setTopicSent(registrationId: string, categoryId: string, topicId: string, sent: boolean) {
+  if (![registrationId, categoryId, topicId].every((value) => isValidObjectId(value))) return false;
+  await connectToDatabase();
+  const result = await Registration.updateOne(
+    { _id: registrationId },
+    sent
+      ? { $set: { "preferences.selections.$[category].topics.$[topic].sent": true, "preferences.selections.$[category].topics.$[topic].sentAt": new Date() } }
+      : { $set: { "preferences.selections.$[category].topics.$[topic].sent": false }, $unset: { "preferences.selections.$[category].topics.$[topic].sentAt": "" } },
+    { arrayFilters: [{ "category.category": categoryId }, { "topic.topic": topicId }] }
+  );
+  return result.matchedCount > 0;
+}
+
 /** Stops a subscription. A cancelled subscription's payment record is left exactly as it was. */
 export async function cancelSubscription(id: string, reason?: string) {
   if (!isValidObjectId(id)) return null;
   await connectToDatabase();
-  return Subscription.findOneAndUpdate(
+  const cancelled = await Subscription.findOneAndUpdate(
     { _id: id, status: { $in: ["ACTIVE", "PENDING_PAYMENT"] } },
     { $set: { status: "CANCELLED", cancelledAt: new Date(), cancelReason: reason?.slice(0, 300) } },
     { new: true }
   );
+  // A pilot place (confirmed or still held) goes back to the plan.
+  if (cancelled?.subscriptionType === "PILOT") {
+    await cancelPilotPlace(cancelled._id, "cancelled");
+    if (cancelled.registrationId) await releasePilotReservation(cancelled.registrationId, "Subscription cancelled");
+  }
+  return cancelled;
 }
 
 export async function getSubscriptionStats() {

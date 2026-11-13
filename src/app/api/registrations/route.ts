@@ -19,15 +19,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { registrationId, token, planId } = body.data;
-    return NextResponse.json(await saveRegistrationDetails({ registrationId, token, planId, details: details.data }));
+    const { registrationId, token, planId, pilotPlanId, accessCode } = body.data;
+    return NextResponse.json(
+      await saveRegistrationDetails({ registrationId, token, planId, details: details.data, pilot: pilotPlanId ? { pilotPlanId, accessCode } : undefined })
+    );
   } catch (error) {
     // Not a place we register from: refused here, whatever the browser's form did.
     if (error instanceof NotServiceableError) {
       return NextResponse.json({ error: error.message, code: "NOT_SERVICEABLE", fields: { postalCode: [error.message] } }, { status: 403 });
     }
     if (error instanceof RegistrationFieldError) return NextResponse.json({ error: error.message, fields: error.fields }, { status: 400 });
-    if (error instanceof RegistrationError) return NextResponse.json({ error: error.message, code: error.code }, { status: 409 });
+    if (error instanceof RegistrationError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.code === "PILOT_UNAVAILABLE" ? 403 : 409 });
     console.error("Could not save registration", error);
     return NextResponse.json({ error: "We couldn't save your details. Please try again." }, { status: 500 });
   }

@@ -22,7 +22,8 @@ import {
   formatAdminDate,
   formatAdminDateTime,
 } from "@/components/admin/subscription-badges";
-import { cancelSubscriptionAction, sendRenewalReminderAction } from "../actions";
+import { cancelSubscriptionAction, sendRenewalReminderAction, setTopicSentAction } from "../actions";
+import { TopicSentList } from "@/components/admin/topic-sent-list";
 import { SendReminderButton } from "@/components/admin/send-reminder-button";
 
 export const metadata: Metadata = { title: "Registration" };
@@ -79,11 +80,17 @@ export default async function RegistrationDetailPage({
     ? [record.address.line1, record.address.line2, [record.address.city, record.address.postalCode].filter(Boolean).join(" "), record.address.country]
     : [snapshot?.address?.line, [snapshot?.address?.city, snapshot?.address?.postalCode].filter(Boolean).join(" "), snapshot?.address?.country];
   const selections = record?.preferences?.selections?.length
-    ? record.preferences.selections.map((selection) => ({ name: selection.categoryName, topics: selection.topics.map((topic) => topic.title) }))
-    : [
-        ...(snapshot?.topics?.sketching?.length ? [{ name: "Sketching", topics: snapshot.topics.sketching }] : []),
-        ...(snapshot?.topics?.writing?.length ? [{ name: "Writing", topics: snapshot.topics.writing }] : []),
+    ? record.preferences.selections.map((selection) => ({
+        name: selection.categoryName,
+        categoryId: selection.category.toString(),
+        topics: selection.topics.map((topic) => ({ id: topic.topic?.toString() ?? "", title: topic.title, sent: Boolean(topic.sent), sentAt: topic.sentAt?.toISOString() ?? null })),
+      }))
+    : // Older registrations kept only titles: shown, but there is nothing to tick against.
+      [
+        ...(snapshot?.topics?.sketching?.length ? [{ name: "Sketching", categoryId: "", topics: snapshot.topics.sketching.map((title) => ({ id: "", title, sent: false, sentAt: null })) }] : []),
+        ...(snapshot?.topics?.writing?.length ? [{ name: "Writing", categoryId: "", topics: snapshot.topics.writing.map((title) => ({ id: "", title, sent: false, sentAt: null })) }] : []),
       ];
+  const canMarkSent = can(user.role, "update", "subscribers") && Boolean(record?._id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -205,9 +212,18 @@ export default async function RegistrationDetailPage({
                     title={selection.name}
                     description={`${selection.topics.length} chosen${version ? ` from the “${version.name}” topic set` : ""}`}
                   />
-                  <ol className="list-decimal space-y-1 px-5 pb-5 pl-10 text-sm text-navy-900">
-                    {selection.topics.map((topic) => <li key={topic}>{topic}</li>)}
-                  </ol>
+                  {selection.categoryId && selection.topics.every((topic) => topic.id) ? (
+                    <TopicSentList
+                      categoryId={selection.categoryId}
+                      topics={selection.topics}
+                      canEdit={canMarkSent}
+                      action={setTopicSentAction.bind(null, record!._id.toString())}
+                    />
+                  ) : (
+                    <ol className="list-decimal space-y-1 px-5 pb-5 pl-10 text-sm text-navy-900">
+                      {selection.topics.map((topic) => <li key={topic.title}>{topic.title}</li>)}
+                    </ol>
+                  )}
                 </Card>
               ))}
             </div>
@@ -222,6 +238,7 @@ export default async function RegistrationDetailPage({
             <dl className="divide-y divide-line px-5 pb-3">
               <Detail label="Status"><SubscriptionStateBadge state={subscription.state} /></Detail>
               <Detail label="Programme">{subscription.planSnapshot?.programme}</Detail>
+              <Detail label="Subscription type">{subscription.subscriptionType === "PILOT" ? "Pilot Subscription" : "Standard Subscription"}</Detail>
               <Detail label="Plan">{subscription.planSnapshot?.name}</Detail>
               <Detail label="Age group">{subscription.planSnapshot ? `Ages ${subscription.planSnapshot.ageGroup}` : ""}</Detail>
               <Detail label="Duration">

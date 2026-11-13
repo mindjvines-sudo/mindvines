@@ -30,6 +30,11 @@ export const subscriptionInputSchema = z.object({
   badge: z.string().trim().max(30).default(""),
   buttonLabel: z.string().trim().max(40).default(""),
   featured: z.boolean(),
+  // Availability for new registrations. Optional with an "on" default so older callers keep today's behaviour.
+  subscriptionActive: z.boolean().default(true),
+  cardVisible: z.boolean().default(true),
+  subscribeEnabled: z.boolean().default(true),
+  disabledMessage: z.string().trim().max(160, "Keep the message under 160 characters").default(""),
   displayOrder: numberInput(z.number().int().min(0).max(10000)),
   status: z.enum(CONTENT_STATUSES),
 });

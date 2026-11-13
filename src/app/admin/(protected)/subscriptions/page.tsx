@@ -85,7 +85,10 @@ export default async function SubscriptionPlansPage({ searchParams }: { searchPa
                   <Td><span className="font-medium text-navy-900">{plan.name}</span>{plan.featured && <div className="mt-1"><Badge tone="violet">Recommended</Badge></div>}</Td>
                   <Td>Ages {plan.ageGroup}</Td><Td>{formatPlanPrice(plan.price)}</Td>
                   <Td>{plan.durationMonths} {plan.durationMonths === 1 ? "month" : "months"}<span className="block text-xs text-slate-500">{plan.journalCount} journals{programmeNames.get(String(plan.programme)) ? ` · ${programmeNames.get(String(plan.programme))}` : ""}</span></Td>
-                  <Td>{plan.displayOrder}</Td><Td><StatusBadge status={plan.status} /></Td>
+                  <Td>{plan.displayOrder}</Td><Td><StatusBadge status={plan.status} />
+                    {plan.subscriptionActive === false && <div className="mt-1"><Badge tone="red">Inactive</Badge></div>}
+                    {plan.subscriptionActive !== false && plan.cardVisible === false && <div className="mt-1"><Badge tone="slate">Card hidden</Badge></div>}
+                    {plan.subscriptionActive !== false && plan.cardVisible !== false && plan.subscribeEnabled === false && <div className="mt-1"><Badge tone="amber">Subscribe disabled</Badge></div>}</Td>
                   <Td align="right"><RowActions>
                     {can(user.role, "update", "subscriptions") && <ButtonLink href={`/admin/subscriptions/${id}/edit`} variant="ghost" size="sm" aria-label={`Edit ${plan.name}`}><PencilIcon /></ButtonLink>}
                     {can(user.role, "delete", "subscriptions") && <ConfirmAction action={deleteSubscriptionAction.bind(null, id)} title="Delete this plan?" description={`${plan.name} will be permanently removed from the admin and website.`} confirmLabel="Delete plan" triggerLabel={`Delete ${plan.name}`} trigger={<TrashIcon />} />}

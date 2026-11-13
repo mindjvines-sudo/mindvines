@@ -85,6 +85,9 @@ export const saveDetailsRequestSchema = z.object({
   registrationId: objectId.optional(),
   token: z.string().max(100).optional(),
   planId: objectId,
+  // Registering through a pilot offer: the server reads the plan from these, not from `planId`.
+  pilotPlanId: objectId.optional(),
+  accessCode: z.string().max(40).optional(),
   details: z.unknown(),
 });
 

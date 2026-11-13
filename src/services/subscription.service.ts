@@ -2,6 +2,7 @@ import "server-only";
 import { isValidObjectId } from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getPagination, totalPages } from "@/lib/utils";
+import { LISTED_PLAN_FILTER } from "@/lib/plan-availability";
 import { SubscriptionPlan } from "@/models/SubscriptionPlan";
 import type { SubscriptionInput } from "@/validations/subscription.schema";
 import type { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
@@ -28,13 +29,13 @@ export async function listSubscriptionPlansAdmin(params: { page?: string | numbe
 
 export async function listPublishedSubscriptionPlans() {
   await connectToDatabase();
-  return SubscriptionPlan.find({ status: "PUBLISHED" })
+  return SubscriptionPlan.find({ ...LISTED_PLAN_FILTER })
     .sort({ ageGroup: 1, displayOrder: 1, createdAt: 1 }).lean();
 }
 
 export async function listPublishedSubscriptionPlansForAge(ageGroup: SubscriptionAgeGroup) {
   await connectToDatabase();
-  return SubscriptionPlan.find({ status: "PUBLISHED", ageGroup }).sort({ displayOrder: 1, durationMonths: 1, createdAt: 1 }).lean();
+  return SubscriptionPlan.find({ ...LISTED_PLAN_FILTER, ageGroup }).sort({ displayOrder: 1, durationMonths: 1, createdAt: 1 }).lean();
 }
 
 export async function getSubscriptionPlan(id: string) {
@@ -56,15 +57,15 @@ export async function subscriptionPlanExists(input: Pick<SubscriptionInput, "nam
   );
 }
 
-export async function createSubscriptionPlan(input: SubscriptionInput) {
+export async function createSubscriptionPlan(input: SubscriptionInput, userId?: string) {
   await connectToDatabase();
-  return SubscriptionPlan.create(input);
+  return SubscriptionPlan.create({ ...input, updatedBy: userId });
 }
 
-export async function updateSubscriptionPlan(id: string, input: SubscriptionInput) {
+export async function updateSubscriptionPlan(id: string, input: SubscriptionInput, userId?: string) {
   if (!isValidObjectId(id)) return null;
   await connectToDatabase();
-  return SubscriptionPlan.findByIdAndUpdate(id, { $set: input }, { new: true, runValidators: true });
+  return SubscriptionPlan.findByIdAndUpdate(id, { $set: { ...input, updatedBy: userId } }, { new: true, runValidators: true });
 }
 
 export async function deleteSubscriptionPlan(id: string) {

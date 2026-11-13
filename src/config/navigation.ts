@@ -3,17 +3,17 @@ import type { Resource } from "@/lib/permissions";
 // Public-site navigation lives in components/layout/Header.tsx and buildMenu in
 // @/lib/content. This file defines the admin sidebar.
 
-export type AdminNavGroup = "Subscription Management" | "Location Management" | "Customers" | "Website content" | "System";
+export type AdminNavGroup = "Subscription Management" | "Pilot Registration" | "Location Management" | "Customers" | "Website content" | "System";
 
 /** Sidebar icons, by name (see components/admin/admin-shell). */
 export type AdminNavIcon =
   | "registrations" | "active" | "expiring" | "expired" | "pending" | "cancelled"
-  | "plans" | "programmes" | "topics" | "enquiries" | "testimonials" | "ageGroups" | "locations" | "addLocation" | "directory" | "blog" | "media" | "settings";
+  | "plans" | "pilot" | "programmes" | "topics" | "enquiries" | "testimonials" | "ageGroups" | "locations" | "addLocation" | "directory" | "blog" | "media" | "settings";
 
 export type AdminNavItem = { label: string; href: string; resource: Resource; group: AdminNavGroup; icon: AdminNavIcon };
 
 /** Sidebar section order; groups with no visible items are skipped. */
-export const ADMIN_NAV_GROUPS: AdminNavGroup[] = ["Subscription Management", "Location Management", "Customers", "Website content", "System"];
+export const ADMIN_NAV_GROUPS: AdminNavGroup[] = ["Subscription Management", "Pilot Registration", "Location Management", "Customers", "Website content", "System"];
 
 // `resource` maps to lib/permissions.ts so the admin layout can filter this
 // list down to what the signed-in user's role is actually allowed to see.
@@ -21,6 +21,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = ["Subscription Management", "Lo
 // sidebar highlights the one matching the current address most closely.
 export const adminNavigation: AdminNavItem[] = [
   { label: "All Registrations", href: "/admin/subscribers", resource: "subscribers", group: "Subscription Management", icon: "registrations" },
+  { label: "Pilot Subscribers", href: "/admin/subscribers?type=PILOT", resource: "subscribers", group: "Subscription Management", icon: "pilot" },
   { label: "Active Subscriptions", href: "/admin/subscribers?state=ACTIVE", resource: "subscribers", group: "Subscription Management", icon: "active" },
   { label: "Expiring Soon", href: "/admin/subscribers?state=EXPIRING_SOON", resource: "subscribers", group: "Subscription Management", icon: "expiring" },
   { label: "Expired Subscriptions", href: "/admin/subscribers?state=EXPIRED", resource: "subscribers", group: "Subscription Management", icon: "expired" },
@@ -29,6 +30,7 @@ export const adminNavigation: AdminNavItem[] = [
   { label: "Subscription Plans", href: "/admin/subscriptions", resource: "subscriptions", group: "Subscription Management", icon: "plans" },
   { label: "Programme Management", href: "/admin/programmes", resource: "programmes", group: "Subscription Management", icon: "programmes" },
   { label: "Topic Management", href: "/admin/topics", resource: "topics", group: "Subscription Management", icon: "topics" },
+  { label: "Pilot Registration", href: "/admin/pilot", resource: "pilotPlans", group: "Pilot Registration", icon: "pilot" },
   { label: "Serviceable Locations", href: "/admin/locations", resource: "locations", group: "Location Management", icon: "locations" },
   { label: "Add Pincode", href: "/admin/locations/new", resource: "locations", group: "Location Management", icon: "addLocation" },
   { label: "Location Directory", href: "/admin/locations/directory", resource: "locations", group: "Location Management", icon: "directory" },

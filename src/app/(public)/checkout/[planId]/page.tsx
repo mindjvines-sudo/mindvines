@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { CheckoutFlow } from "@/components/checkout/CheckoutFlow";
+import { disabledMessage, isListed, planAvailability } from "@/lib/plan-availability";
 import { FOOTER_LINKS } from "@/lib/content";
 import { computeAmounts } from "@/lib/subscription-status";
 import { getPublishedAgeGroupSlugForPlans } from "@/services/age-group.service";
@@ -19,7 +21,21 @@ export default async function CheckoutPage({ params }: { params: Promise<{ planI
   await connection();
   const { planId } = await params;
   const plan = await getSubscriptionPlan(planId);
-  if (!plan || plan.status !== "PUBLISHED") notFound();
+  if (!plan) notFound();
+  // Hidden, inactive and unpublished plans are not found; a plan whose button is off says why. The server refuses them again on save and at payment.
+  const availability = planAvailability(plan);
+  if (!isListed(availability)) notFound();
+  if (availability === "BUTTON_DISABLED") {
+    return (
+      <section className="bg-cream px-5 py-16 sm:px-8">
+        <div role="status" className="mx-auto max-w-[640px] rounded-[28px] bg-card p-8 shadow-card">
+          <h1 className="font-display text-[30px] font-semibold text-ink">{plan.name}</h1>
+          <p className="mt-3 text-[18px] leading-relaxed">{disabledMessage(plan)}</p>
+          <Link href="/subscriptions" className="mt-6 inline-block font-bold underline underline-offset-4">See other plans</Link>
+        </div>
+      </section>
+    );
+  }
 
   const [slug, programme, choices, preferences] = await Promise.all([
     // Back to the plan band this plan came from, wherever the admin published it.

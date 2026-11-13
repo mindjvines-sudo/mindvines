@@ -12,6 +12,9 @@ export type PlanCard = {
   highlight: boolean;
   buttonLabel: string;
   buttonHref: string;
+  /** Subscribe is switched off by the admin: the card shows, the button doesn't work, and the message says why. */
+  disabled?: boolean;
+  disabledMessage?: string;
   /** Picks the plan in place of linking to checkout (the renewal page). */
   select?: { selected: boolean; current: boolean; onSelect: () => void };
 };
@@ -132,6 +135,7 @@ function PlanCardView({
   priceNote: string;
   footnote: string;
 }) {
+  const descId = useId();
   const badge = card.badge && (
     <p className="absolute right-[12px] top-[17px] grid h-[36px] min-w-[120px] place-items-center rounded-full bg-[#c8c1b8] px-6 font-label text-[17px] font-bold text-ink lg:h-[41px] lg:min-w-[162px] lg:text-[20.25px]">
       {card.badge}
@@ -139,7 +143,15 @@ function PlanCardView({
   );
   const buttonClass = "inline-flex max-w-full h-[47px] items-center justify-center rounded-full border border-r-[3px] border-b-[3px] border-cocoa px-6 font-ui text-[18px] transition-colors";
   const button = (className: string) =>
-    card.select ? (
+    card.disabled ? (
+      <>
+        <button type="button" disabled aria-disabled="true" aria-describedby={`${descId}`} className={cn(buttonClass, "cursor-not-allowed bg-[#c8c1b8] text-ink/60", className)}>
+          {card.buttonLabel}
+          <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}</span>
+        </button>
+        <p id={descId} role="note" className="mt-3 max-w-[260px] text-center text-[16px] font-bold text-ink">{card.disabledMessage}</p>
+      </>
+    ) : card.select ? (
       <button
         type="button"
         onClick={card.select.onSelect}

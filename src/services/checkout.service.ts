@@ -9,12 +9,15 @@ import {
   type RazorpayPayment,
 } from "@/lib/razorpay";
 import { verifyPaymentSignature } from "@/lib/razorpay-signature";
+import { planRefusal } from "@/lib/plan-availability";
 import { gstRatePercent } from "@/lib/gst";
 import { addMonths, computeAmounts } from "@/lib/subscription-status";
 import { Payment } from "@/models/Payment";
 import { Subscriber } from "@/models/Subscriber";
 import { Subscription } from "@/models/Subscription";
 import { SubscriptionPlan } from "@/models/SubscriptionPlan";
+import { PilotPlan } from "@/models/PilotPlan";
+import { PilotError, confirmPilotSlot, linkPilotSubscription, releasePilotHoldForOrder, releasePilotReservation, reservePilotSlot } from "@/services/pilot.service";
 import { applyStartedSubscriptions, completeRegistration, loadRegistrationForPayment, markRegistrationPaymentPending } from "@/services/registration.service";
 import { subscriptionAdminAlertEmail, subscriptionConfirmationEmail, type SubscriptionEmailData } from "@/lib/email-templates";
 import { SITE } from "@/lib/content";
@@ -65,7 +68,7 @@ type PayablePlan = { _id: Types.ObjectId; name: string; ageGroup: string; price:
 async function openOrder(
   registration: PayableRegistration,
   plan: PayablePlan,
-  options: { renewal: boolean; programmeName?: string | null }
+  options: { renewal: boolean; programmeName?: string | null; pilotPlanId?: Types.ObjectId }
 ): Promise<CheckoutOrder> {
   const { baseAmount, taxAmount, totalAmount } = computeAmounts(plan.price, gstRatePercent());
   if (totalAmount < 100) throw new CheckoutError("PLAN_UNAVAILABLE", "This plan can't be bought online.");
@@ -110,6 +113,8 @@ async function openOrder(
     status: "PENDING_PAYMENT",
     registrationId: registration._id,
     plan: plan._id,
+    // A pilot order is never mistaken for a standard one (or another pilot plan's), even for the same base plan.
+    ...(options.pilotPlanId ? { pilotPlan: options.pilotPlanId } : { pilotPlan: { $exists: false } }),
     createdAt: { $gt: new Date(Date.now() - REUSE_ORDER_MS) },
   })
     .sort({ createdAt: -1 })
@@ -119,6 +124,7 @@ async function openOrder(
     );
   if (recent?.payment && recent.payment.amount === totalAmount && (UNSETTLED as readonly string[]).includes(recent.payment.status)) {
     await Subscription.updateOne({ _id: recent._id }, { $set: { registration: snapshot, planSnapshot } });
+    if (options.pilotPlanId) await linkPilotSubscription(registration._id, recent._id, { amount: totalAmount, razorpayOrderId: recent.payment.razorpayOrderId });
     return { orderId: recent.payment.razorpayOrderId, keyId: razorpayKeyId(), amount: totalAmount, currency: recent.payment.currency };
   }
 
@@ -129,6 +135,7 @@ async function openOrder(
     registrationId: registration._id,
     reference: registration.reference,
     renewal: options.renewal,
+    ...(options.pilotPlanId && { subscriptionType: "PILOT", pilotPlan: options.pilotPlanId }),
     status: "PENDING_PAYMENT",
   });
 
@@ -155,6 +162,7 @@ async function openOrder(
       status: "CREATED",
     });
     await Subscription.updateOne({ _id: subscription._id }, { $set: { payment: payment._id } });
+    if (options.pilotPlanId) await linkPilotSubscription(registration._id, subscription._id, { amount: totalAmount, razorpayOrderId: order.id });
     return { orderId: order.id, keyId: razorpayKeyId(), amount: totalAmount, currency: order.currency };
   } catch (error) {
     await Subscription.deleteOne({ _id: subscription._id });
@@ -166,11 +174,48 @@ async function openOrder(
 export async function createCheckoutOrder(registrationId: string, token: string): Promise<CheckoutOrder> {
   await connectToDatabase();
   const registration = await loadRegistrationForPayment(registrationId, token);
+  if (registration.pilotPlan) return createPilotCheckoutOrder(registration);
   const plan = await SubscriptionPlan.findOne({ _id: registration.plan, status: "PUBLISHED" }).lean();
   if (!plan) throw new CheckoutError("PLAN_UNAVAILABLE", "This plan is no longer available.");
+  // Checked again before any payment session exists: the admin may have switched the plan off since the form was filled in.
+  const refusal = planRefusal(plan);
+  if (refusal) throw new CheckoutError("PLAN_UNAVAILABLE", refusal);
   const order = await openOrder(registration, plan, { renewal: false });
   await markRegistrationPaymentPending(registration._id);
   return order;
+}
+
+/**
+ * A pilot registration's order. The slot is reserved first (atomically, on the
+ * server, with eligibility and the window and limit checked again), and the
+ * price and duration come from the pilot plan as it stands now: nothing the
+ * browser sent is used. If no order can be opened the slot is given back.
+ */
+async function createPilotCheckoutOrder(registration: PayableRegistration): Promise<CheckoutOrder> {
+  const pilot = await PilotPlan.findById(registration.pilotPlan).lean();
+  const base = pilot ? await SubscriptionPlan.findById(pilot.basePlan).lean() : null;
+  if (!pilot || !base) throw new CheckoutError("PLAN_UNAVAILABLE", "This pilot plan is no longer available.");
+  if (String(base._id) !== String(registration.plan)) {
+    throw new CheckoutError("PLAN_UNAVAILABLE", "This pilot plan was updated. Please go back and check your details again.");
+  }
+  try {
+    await reservePilotSlot({ registrationId: registration._id, pilotPlanId: pilot._id, email: registration.parent?.email ?? "" });
+  } catch (error) {
+    if (error instanceof PilotError) throw new CheckoutError("PLAN_UNAVAILABLE", error.message);
+    throw error;
+  }
+  try {
+    const order = await openOrder(
+      registration,
+      { _id: base._id, name: pilot.name, ageGroup: base.ageGroup, price: pilot.offerPrice, durationMonths: pilot.durationMonths },
+      { renewal: false, pilotPlanId: pilot._id }
+    );
+    await markRegistrationPaymentPending(registration._id);
+    return order;
+  } catch (error) {
+    await releasePilotReservation(registration._id, "Could not open the payment");
+    throw error;
+  }
 }
 
 /**
@@ -304,6 +349,20 @@ async function activateSubscription(paymentId: Types.ObjectId) {
   }).sort({ expiryDate: -1 });
   const startDate = current?.expiryDate ?? now;
 
+  // A pilot payment takes its place in the plan first. If the plan filled up while a lapsed hold was unpaid, the
+  // subscription is not activated (the registration is flagged for a refund) so the limit is never exceeded.
+  if (subscription.subscriptionType === "PILOT") {
+    const placed = await confirmPilotSlot(
+      subscription._id,
+      { amount: payment.amount, paymentReference: payment.razorpayOrderId },
+      { start: startDate, expiry: addMonths(startDate, planSnapshot.durationMonths), subscriber: subscriber._id }
+    );
+    if (!placed) {
+      console.error(`[pilot] payment ${payment.razorpayOrderId} arrived after the plan filled up; flagged for refund`);
+      return;
+    }
+  }
+
   const activated = await Subscription.findOneAndUpdate(
     { _id: subscription._id, status: "PENDING_PAYMENT" },
     {
@@ -419,6 +478,8 @@ export async function confirmCheckoutPayment(params: { orderId: string; paymentI
 /** A failed or cancelled attempt. Never downgrades a payment that has been paid. */
 export async function recordPaymentOutcome(orderId: string, outcome: "failed" | "cancelled", reason?: string) {
   await connectToDatabase();
+  // A walked-away pilot payment gives its slot back at once. A failed attempt keeps it until the hold lapses, because the customer can retry the same order.
+  if (outcome === "cancelled") await releasePilotHoldForOrder(orderId);
   await Payment.updateOne(
     { razorpayOrderId: orderId, status: { $in: UNSETTLED } },
     { $set: { status: outcome === "failed" ? "FAILED" : "CANCELLED", failureReason: reason?.slice(0, 300) } }

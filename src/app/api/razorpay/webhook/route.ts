@@ -5,6 +5,7 @@ import { verifyWebhookSignature } from "@/lib/razorpay-signature";
 import { Payment } from "@/models/Payment";
 import { WebhookEvent } from "@/models/WebhookEvent";
 import { settlePayment } from "@/services/checkout.service";
+import { handlePilotRefund } from "@/services/pilot.service";
 
 type WebhookPayment = {
   id: string;
@@ -66,6 +67,9 @@ export async function POST(request: Request) {
     if (rzp && orderId) {
       if (event === "payment.captured" || event === "order.paid") {
         await settlePayment({ orderId, razorpayPayment: rzp, via: "WEBHOOK", signatureVerified: true });
+      } else if ((event === "refund.processed" || event === "payment.refunded") && rzp.status === "refunded") {
+        // A fully refunded pilot payment ends the subscription and reopens its slot; standard subscriptions are left as they are.
+        await handlePilotRefund(orderId);
       } else if (event === "payment.failed") {
         await Payment.updateOne(
           { razorpayOrderId: orderId, status: { $in: ["CREATED", "PENDING", "CANCELLED"] } },

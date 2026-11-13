@@ -24,6 +24,7 @@ export default async function EditSubscriptionPlanPage({ params }: { params: Pro
       price: plan.price, durationMonths: plan.durationMonths, journalCount: plan.journalCount, programme: plan.programme?.toString() ?? "",
       features: plan.features, registrationUrl: plan.registrationUrl, badge: plan.badge ?? "", buttonLabel: plan.buttonLabel ?? "", featured: plan.featured,
       displayOrder: plan.displayOrder, status: plan.status,
+      subscriptionActive: plan.subscriptionActive !== false, cardVisible: plan.cardVisible !== false, subscribeEnabled: plan.subscribeEnabled !== false, disabledMessage: plan.disabledMessage ?? "",
     }} />
   </div>;
 }

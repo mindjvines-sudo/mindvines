@@ -21,6 +21,8 @@ export const RESOURCES = [
   "auditLogs",
   // Which pincodes may register children. Not in any role's matrix: Super Admin only.
   "locations",
+  // Pilot offers: plans, limits and their registrations. Plans are deactivated, never deleted, so no "delete" below.
+  "pilotPlans",
 ] as const;
 export type Resource = (typeof RESOURCES)[number];
 
@@ -53,6 +55,7 @@ const MATRIX: Record<Exclude<Role, "SUPER_ADMIN">, Partial<Record<Resource, Acti
     enquiries: ["read", "update", "delete"],
     // Paying customers: view, search, export and cancel. Payments themselves are never edited here.
     subscribers: ["read", "update"],
+    pilotPlans: ["create", "read", "update"],
     redirects: ["create", "read", "update", "delete"],
     settings: ["read", "update"],
   },

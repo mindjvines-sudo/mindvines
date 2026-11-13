@@ -134,6 +134,7 @@ export function CheckoutFlow({
   gstPercent,
   plansHref,
   legal,
+  pilot,
 }: {
   plan: Plan;
   programmeName: string;
@@ -143,6 +144,11 @@ export function CheckoutFlow({
   gstPercent: number;
   plansHref: string;
   legal: { terms: string; privacy: string };
+  /**
+   * Set when registering through a pilot offer. The prices shown are for the
+   * customer's information only: the server prices the order from the pilot plan.
+   */
+  pilot?: { id: string; accessCode?: string; originalAmount: number; terms: string; slotsLeft: number };
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("details");
@@ -278,6 +284,7 @@ export function CheckoutFlow({
       registrationId: saved.registrationId,
       token: saved.token,
       planId: plan.id,
+      ...(pilot && { pilotPlanId: pilot.id, accessCode: pilot.accessCode }),
       details,
     }).catch(() => null);
     setBusy(false);
@@ -360,6 +367,7 @@ export function CheckoutFlow({
   const duration = `${plan.durationMonths} ${plan.durationMonths === 1 ? "month" : "months"}`;
   const summary = (
     <aside className="self-start rounded-[28px] bg-card p-6 shadow-card lg:sticky lg:top-36 lg:p-8" aria-label="Your plan">
+      {pilot && <p className="mb-2 inline-block rounded-full bg-amber px-3 py-1 text-[13px] font-bold uppercase tracking-wide text-ink">Pilot offer</p>}
       <p className="text-[15px] font-bold text-tan">Ages {plan.ageGroup} · {programmeName}</p>
       <h2 className="mt-1 font-display text-[28px] font-semibold leading-tight text-ink">{plan.name}</h2>
       {plan.description && <p className="mt-2 whitespace-pre-line text-[16px] leading-relaxed">{plan.description}</p>}
@@ -371,10 +379,20 @@ export function CheckoutFlow({
         ))}
       </ul>
       <dl className="mt-6 space-y-2 border-t border-ink/15 pt-5 text-[16px]">
-        <div className="flex justify-between"><dt>Plan price</dt><dd className="tabular-nums">{formatPaise(amounts.baseAmount)}</dd></div>
+        {pilot && pilot.originalAmount > amounts.baseAmount && (
+          <div className="flex justify-between text-ink/70"><dt>Regular price</dt><dd className="tabular-nums line-through">{formatPaise(pilot.originalAmount)}</dd></div>
+        )}
+        <div className="flex justify-between"><dt>{pilot ? "Pilot price" : "Plan price"}</dt><dd className="tabular-nums">{formatPaise(amounts.baseAmount)}</dd></div>
         <div className="flex justify-between"><dt>GST ({gstPercent}%)</dt><dd className="tabular-nums">{formatPaise(amounts.taxAmount)}</dd></div>
         <div className="flex justify-between border-t border-ink/15 pt-3 text-[20px] font-bold"><dt>Total</dt><dd className="tabular-nums">{formatPaise(amounts.totalAmount)}</dd></div>
       </dl>
+      {pilot && pilot.slotsLeft > 0 && pilot.slotsLeft <= 20 && <p className="mt-4 text-[15px] font-bold">Only {pilot.slotsLeft} {pilot.slotsLeft === 1 ? "place" : "places"} left</p>}
+      {pilot?.terms && (
+        <details className="mt-4 text-[15px]">
+          <summary className="cursor-pointer font-bold">Pilot terms</summary>
+          <p className="mt-2 whitespace-pre-line leading-relaxed">{pilot.terms}</p>
+        </details>
+      )}
       <Link href={plansHref} className="mt-5 inline-block text-[15px] font-bold underline underline-offset-4">Choose another plan</Link>
     </aside>
   );
@@ -678,9 +696,10 @@ export function CheckoutFlow({
 
         <SummaryBlock title="Your order">
           <Row label="Programme">{`Ages ${plan.ageGroup} · ${programmeName}`}</Row>
-          <Row label="Plan">{plan.name}</Row>
+          <Row label="Plan">{pilot ? `${plan.name} (pilot offer)` : plan.name}</Row>
           <Row label="Duration">{duration}</Row>
-          <Row label="Price">{formatPaise(amounts.baseAmount)}</Row>
+          {pilot && pilot.originalAmount > amounts.baseAmount && <Row label="Regular price">{formatPaise(pilot.originalAmount)}</Row>}
+          <Row label={pilot ? "Pilot price" : "Price"}>{formatPaise(amounts.baseAmount)}</Row>
           <Row label={`GST (${gstPercent}%)`}>{formatPaise(amounts.taxAmount)}</Row>
           <Row label="Total payable" strong>{formatPaise(amounts.totalAmount)}</Row>
         </SummaryBlock>

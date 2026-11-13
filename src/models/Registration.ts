@@ -22,6 +22,8 @@ const registrationSchema = new Schema(
     tokenHash: { type: String, required: true, select: false },
 
     plan: { type: Schema.Types.ObjectId, ref: "SubscriptionPlan", required: true },
+    // Set when this child is registering through a pilot offer; `plan` is then the pilot's base plan (programme and topics).
+    pilotPlan: { type: Schema.Types.ObjectId, ref: "PilotPlan" },
     programme: { type: Schema.Types.ObjectId, ref: "Programme" },
     programmeName: { type: String, trim: true },
 
@@ -68,7 +70,16 @@ const registrationSchema = new Schema(
           _id: false,
           category: { type: Schema.Types.ObjectId, ref: "TopicCategory", required: true },
           categoryName: { type: String, required: true },
-          topics: [{ _id: false, topic: { type: Schema.Types.ObjectId, ref: "Topic" }, title: { type: String, required: true } }],
+          topics: [
+            {
+              _id: false,
+              topic: { type: Schema.Types.ObjectId, ref: "Topic" },
+              title: { type: String, required: true },
+              // Ticked by an admin once this topic's journal has gone to the child, so it isn't sent twice.
+              sent: { type: Boolean, default: false },
+              sentAt: { type: Date },
+            },
+          ],
         },
       ],
       savedAt: { type: Date },

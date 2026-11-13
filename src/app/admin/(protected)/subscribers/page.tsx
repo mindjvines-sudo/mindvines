@@ -15,6 +15,7 @@ import {
 import { Card } from "@/components/admin/ui/card";
 import { PageHeader } from "@/components/admin/ui/page-header";
 import { EmptyState } from "@/components/admin/ui/feedback";
+import { Badge } from "@/components/admin/ui/badge";
 import { FilterTabs, Pagination, hrefWith } from "@/components/admin/ui/list-controls";
 import { Table, TBody, THead, Td, Th, Tr, RowActions } from "@/components/admin/ui/table";
 import { ButtonLink, buttonClasses } from "@/components/admin/ui/button";
@@ -70,7 +71,7 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={(filters.state && TITLES[filters.state]) || "All Registrations"}
+        title={(filters.state && TITLES[filters.state]) || (filters.type === "PILOT" ? "Pilot Subscribers" : "All Registrations")}
         description="Every child registration with its parent, programme, plan, payment and subscription dates. Filter, search and export the list."
         actions={
           <a href={exportHref} className={buttonClasses({ variant: "secondary" })}>
@@ -124,6 +125,14 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
               <select name="payment" defaultValue={filters.payment ?? ""} className={inputClasses(false, "h-10")}>
                 <option value="">Any payment status</option>
                 {PAYMENT_STATUSES.map((status) => <option key={status} value={status}>{PAYMENT_STATUS_LABELS[status]}</option>)}
+              </select>
+            </label>
+            <label className={label}>
+              Subscription type
+              <select name="type" defaultValue={filters.type ?? ""} className={inputClasses(false, "h-10")}>
+                <option value="">Standard and pilot</option>
+                <option value="STANDARD">Standard subscription</option>
+                <option value="PILOT">Pilot subscription</option>
               </select>
             </label>
             <label className={label}>
@@ -228,6 +237,7 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
                     </Td>
                     <Td>
                       <span className="block max-w-[200px] truncate text-slate-700">{item.planSnapshot?.programme ?? item.planSnapshot?.name}</span>
+                      <Badge tone={item.subscriptionType === "PILOT" ? "violet" : "slate"} dot={false} className="mb-1">{item.subscriptionType === "PILOT" ? "Pilot subscription" : "Standard subscription"}</Badge>
                       <span className="block text-xs text-slate-400">
                         {item.planSnapshot?.name} · Ages {item.planSnapshot?.ageGroup} · {item.planSnapshot?.durationMonths} mo
                       </span>

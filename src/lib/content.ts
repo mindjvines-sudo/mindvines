@@ -199,6 +199,9 @@ export type PlanCardContent = {
   highlight: boolean;
   buttonLabel: string;
   buttonHref: string;
+  /** The Subscribe button is switched off in Admin; `disabledMessage` is shown in its place. */
+  disabled?: boolean;
+  disabledMessage?: string;
 };
 
 /** One tab of the plan band: a duration and the plans on offer for it. */

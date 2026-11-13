@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import type { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
 import { getPagination, totalPages } from "@/lib/utils";
 import { Programme } from "@/models/Programme";
+import { ORDERABLE_PLAN_FILTER } from "@/lib/plan-availability";
 import { SubscriptionPlan } from "@/models/SubscriptionPlan";
 import type { ProgrammeInput } from "@/validations/programme.schema";
 
@@ -65,7 +66,7 @@ export async function deleteProgramme(id: string): Promise<"deleted" | "in-use" 
  */
 export async function listProgrammeChoices(ageGroup: AgeGroup, durationMonths: number) {
   await connectToDatabase();
-  const plans = await SubscriptionPlan.find({ status: "PUBLISHED", ageGroup, durationMonths, programme: { $ne: null } })
+  const plans = await SubscriptionPlan.find({ ...ORDERABLE_PLAN_FILTER, ageGroup, durationMonths, programme: { $ne: null } })
     .select("programme displayOrder")
     .sort({ displayOrder: 1, createdAt: 1 })
     .lean();

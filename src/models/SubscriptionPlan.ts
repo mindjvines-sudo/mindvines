@@ -18,6 +18,12 @@ const subscriptionPlanSchema = new Schema({
   // Checkout button on the plan card, such as "Choose writing". Empty means "Subscribe now".
   buttonLabel: { type: String, trim: true, default: "" },
   featured: { type: Boolean, default: false },
+  // Availability for NEW registrations; existing subscriptions are never affected. Plans saved before these existed count as on.
+  subscriptionActive: { type: Boolean, default: true },
+  cardVisible: { type: Boolean, default: true },
+  subscribeEnabled: { type: Boolean, default: true },
+  disabledMessage: { type: String, trim: true, default: "" },
+  updatedBy: { type: Schema.Types.ObjectId, ref: "User" },
   displayOrder: { type: Number, default: 0 },
   status: { type: String, enum: CONTENT_STATUSES, default: "DRAFT", required: true },
 }, { timestamps: true });

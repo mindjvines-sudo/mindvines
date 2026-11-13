@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { RegistrationTypeSwitch } from "@/components/pilot/RegistrationTypeSwitch";
 import { SubscriptionPlans, SubscriptionPlansLoading } from "@/components/sections/SubscriptionPlans";
 import { siteConfig } from "@/config/site";
 import { SUBSCRIPTION_AGE_GROUPS } from "@/lib/subscriptions";
@@ -16,8 +17,11 @@ export default async function SubscriptionsPage({ searchParams }: { searchParams
   const age = SUBSCRIPTION_AGE_GROUPS.find((option) => option === requested) ?? SUBSCRIPTION_AGE_GROUPS[0];
 
   return (
-    <Suspense fallback={<SubscriptionPlansLoading age={age} />}>
+    <>
+      <RegistrationTypeSwitch current="standard" />
+      <Suspense fallback={<SubscriptionPlansLoading age={age} />}>
       <SubscriptionPlans age={age} />
-    </Suspense>
+      </Suspense>
+    </>
   );
 }

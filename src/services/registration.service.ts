@@ -5,6 +5,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { findCountry } from "@/lib/countries";
 import { DRAFT_LIFETIME_DAYS, newRegistrationReference } from "@/lib/registration-status";
 import { DAY_MS } from "@/lib/subscription-status";
+import { planRefusal } from "@/lib/plan-availability";
 import { checkTopicPicks } from "@/lib/topics";
 import { Programme } from "@/models/Programme";
 import { Registration } from "@/models/Registration";
@@ -12,10 +13,11 @@ import { Subscription } from "@/models/Subscription";
 import { SubscriptionPlan } from "@/models/SubscriptionPlan";
 import { listPreferenceCategories } from "@/services/topic.service";
 import { LocationError, verifiedAddressFields, verifyServiceable } from "@/services/location.service";
+import { PilotError, assertPilotEligible, getPilotPlan, releasePilotReservation } from "@/services/pilot.service";
 import type { RegistrationDetails, RegistrationPreferences } from "@/validations/registration.schema";
 
 export class RegistrationError extends Error {
-  constructor(readonly code: "NOT_FOUND" | "PLAN_UNAVAILABLE" | "COMPLETED", message: string) {
+  constructor(readonly code: "NOT_FOUND" | "PLAN_UNAVAILABLE" | "PILOT_UNAVAILABLE" | "COMPLETED", message: string) {
     super(message);
   }
 }
@@ -69,10 +71,30 @@ export async function saveRegistrationDetails(params: {
   token?: string;
   planId: string;
   details: RegistrationDetails;
+  /** Registering through a pilot offer: the pilot plan (not `planId`) decides the programme, and the visitor must be eligible for it. */
+  pilot?: { pilotPlanId: string; accessCode?: string };
 }) {
   await connectToDatabase();
-  const plan = isValidObjectId(params.planId) ? await SubscriptionPlan.findOne({ _id: params.planId, status: "PUBLISHED" }).lean() : null;
+  let pilotPlanId: Types.ObjectId | undefined;
+  let basePlanId = params.planId;
+  if (params.pilot) {
+    // Nothing the browser says about the plan is trusted: the pilot plan is read, and judged, here.
+    const pilotPlan = await getPilotPlan(params.pilot.pilotPlanId);
+    if (!pilotPlan) throw new RegistrationError("PILOT_UNAVAILABLE", "This pilot plan is not available.");
+    try {
+      assertPilotEligible(pilotPlan, { code: params.pilot.accessCode, email: params.details.email, requireCode: true });
+    } catch (error) {
+      if (error instanceof PilotError) throw new RegistrationError("PILOT_UNAVAILABLE", error.message);
+      throw error;
+    }
+    pilotPlanId = pilotPlan._id;
+    basePlanId = pilotPlan.basePlan.toString();
+  }
+  const plan = isValidObjectId(basePlanId) ? await SubscriptionPlan.findOne({ _id: basePlanId, ...(pilotPlanId ? {} : { status: "PUBLISHED" }) }).lean() : null;
   if (!plan) throw new RegistrationError("PLAN_UNAVAILABLE", "This plan is no longer available. Please choose another.");
+  // The plan's current switches, read here and not from the browser. (A pilot's base plan is governed by the pilot plan.)
+  const refusal = pilotPlanId ? null : planRefusal(plan);
+  if (refusal) throw new RegistrationError("PLAN_UNAVAILABLE", refusal);
   const programme = plan.programme ? await Programme.findById(plan.programme).select("name categories").lean() : null;
 
   const { details } = params;
@@ -110,6 +132,11 @@ export async function saveRegistrationDetails(params: {
       })
     : null;
 
+  // A draft that moves between a pilot offer and a standard plan (or between pilot plans) gives its held slot back.
+  if (existing && String(existing.pilotPlan ?? "") !== String(pilotPlanId ?? "")) {
+    await releasePilotReservation(existing._id, "Registration changed plan");
+  }
+
   if (existing) {
     // A different programme has different topic lists: choices from the old one no longer apply.
     const sameProgramme = String(existing.programme ?? "") === String(programme?._id ?? "");
@@ -118,6 +145,7 @@ export async function saveRegistrationDetails(params: {
       {
         $set: {
           ...fields,
+          ...(pilotPlanId && { pilotPlan: pilotPlanId }),
           consents: {
             terms: consent(details.acceptTerms, existing.consents?.terms, now),
             featureWork: consent(details.allowFeature, existing.consents?.featureWork, now),
@@ -125,6 +153,7 @@ export async function saveRegistrationDetails(params: {
           },
           ...(!sameProgramme && { "preferences.selections": [], "preferences.savedAt": null }),
         },
+        ...(!pilotPlanId && { $unset: { pilotPlan: "" } }),
       }
     );
     return { registrationId: existing._id.toString(), token: params.token!, reference: existing.reference };
@@ -135,6 +164,7 @@ export async function saveRegistrationDetails(params: {
     try {
       const created = await Registration.create({
         ...fields,
+        ...(pilotPlanId && { pilotPlan: pilotPlanId }),
         reference: newRegistrationReference(randomInt),
         status: "DRAFT",
         tokenHash: hashToken(token),

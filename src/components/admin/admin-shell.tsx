@@ -40,6 +40,7 @@ const NAV_ICONS: Record<AdminNavIcon, IconType> = {
   pending: ClockIcon,
   cancelled: XIcon,
   plans: DocumentIcon,
+  pilot: StarIcon,
   programmes: StarIcon,
   topics: LayersIcon,
   enquiries: InboxIcon,
