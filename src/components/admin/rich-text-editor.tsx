@@ -12,10 +12,13 @@ export function RichTextEditor({
   name,
   initialContent = "",
   placeholder = "Write your post…",
+  onChange,
 }: {
   name: string;
   initialContent?: string;
   placeholder?: string;
+  /** Called with the HTML after every edit, for editors that keep their own state. */
+  onChange?: (html: string) => void;
 }) {
   const [html, setHtml] = useState(initialContent);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
@@ -34,7 +37,10 @@ export function RichTextEditor({
         class: "prose prose-slate max-w-none min-h-[320px] focus:outline-none prose-headings:text-navy-900 prose-a:text-primary-700",
       },
     },
-    onUpdate: ({ editor }) => setHtml(editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      setHtml(editor.getHTML());
+      onChange?.(editor.getHTML());
+    },
   });
 
   return (

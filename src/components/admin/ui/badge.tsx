@@ -46,6 +46,8 @@ const STATUS: Record<string, { label: string; tone: BadgeTone }> = {
   PUBLISHED: { label: "Published", tone: "green" },
   DRAFT: { label: "Draft", tone: "amber" },
   ARCHIVED: { label: "Archived", tone: "slate" },
+  SCHEDULED: { label: "Scheduled", tone: "blue" },
+  UNPUBLISHED: { label: "Unpublished", tone: "slate" },
   // Enquiries
   NEW: { label: "New", tone: "blue" },
   CONTACTED: { label: "Contacted", tone: "violet" },

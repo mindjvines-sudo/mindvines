@@ -50,6 +50,7 @@ const NAV_ICONS: Record<AdminNavIcon, IconType> = {
   addLocation: PlusIcon,
   directory: LayersIcon,
   blog: DocumentIcon,
+  pages: LayersIcon,
   media: ImageIcon,
   settings: GearIcon,
 };

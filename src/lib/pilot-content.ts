@@ -39,3 +39,18 @@ export const PILOT_FEATURES: { title: string; text: string; wide?: boolean }[] =
     wide: true,
   },
 ];
+
+export const PILOT_PLANS_HEADING = "Register for the pilot";
+export const PILOT_PLANS_INTRO =
+  "Choose a plan, then register your child with the usual form. Seats are limited, and registration is complete once your payment is confirmed.";
+
+export type PilotIntroContent = { heading: string; lead: string; steps: { title: string; text: string }[] };
+export type PilotFeaturesContent = { heading: string; items: { title: string; text: string; wide: boolean }[] };
+export type PilotPlansContent = { heading: string; intro: string };
+
+export const PILOT_INTRO_DEFAULT: PilotIntroContent = { heading: PILOT_HEADING, lead: PILOT_LEAD, steps: PILOT_STEPS };
+export const PILOT_FEATURES_DEFAULT: PilotFeaturesContent = {
+  heading: "Features of the pilot",
+  items: PILOT_FEATURES.map((feature) => ({ title: feature.title, text: feature.text, wide: Boolean(feature.wide) })),
+};
+export const PILOT_PLANS_DEFAULT: PilotPlansContent = { heading: PILOT_PLANS_HEADING, intro: PILOT_PLANS_INTRO };

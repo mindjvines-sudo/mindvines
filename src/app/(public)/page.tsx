@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { withSystemSeo } from "@/lib/cms/system-seo";
+import { PageBody } from "@/components/cms/PageBody";
+import { getSystemLayout } from "@/lib/cms/public";
 import { Suspense } from "react";
 import { siteConfig } from "@/config/site";
 import { buildMetadata } from "@/lib/seo";
@@ -13,7 +16,7 @@ import { WhatGrows } from "@/components/sections/WhatGrows";
 import { FAQ, HOME_SEO, SITE } from "@/lib/content";
 
 // The title is the whole title: the layout's "| Mindvines" suffix would repeat the brand.
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   ...buildMetadata({ canonical: siteConfig.url }, { title: HOME_SEO.title, description: HOME_SEO.description }),
   title: { absolute: HOME_SEO.title },
 };
@@ -46,7 +49,20 @@ const jsonLd = [
 ];
 
 /** Section order follows mindvines.in top to bottom. */
-export default function HomePage() {
+export default async function HomePage() {
+  // A layout published in Admin → Pages replaces the built-in one; without it (or if it can't be read) the built-in page shows.
+  const layout = await getSystemLayout("home");
+  if (layout) {
+    const faq = layout.sections.find((section) => section.type === "component" && section.data.component === "faq");
+    const items = faq && faq.type === "component" ? ((faq.data.props.items as { question: string; answer: string }[]) ?? []) : [];
+    const published = [...jsonLd.slice(0, 2), { ...jsonLd[2], mainEntity: items.map((item) => ({ "@type": "Question", name: item.question, acceptedAnswer: { "@type": "Answer", text: item.answer } })) }];
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(items.length ? published : jsonLd.slice(0, 2)).replace(/</g, "\\u003c") }} />
+        <PageBody sections={layout.sections} template={layout.template} ctx={{ pageKey: "home" }} />
+      </>
+    );
+  }
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -62,3 +78,5 @@ export default function HomePage() {
     </>
   );
 }
+
+export const generateMetadata = (): Promise<Metadata> => withSystemSeo("home", baseMetadata);

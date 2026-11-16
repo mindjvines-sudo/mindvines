@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { Reveal } from "@/components/animations/Reveal";
 import { JOURNEY, SECTION_IDS, type JourneyStep } from "@/lib/content";
+import type { Widen } from "@/lib/cms/widen";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,14 +32,14 @@ const ARROWS = [
   { src: "/images/arrow-straight.png", left: 1030, top: 375, width: 173, height: 23, rotate: true },
 ];
 
-export function Journey() {
-  const { steps, finale } = JOURNEY;
+export function Journey({ content = JOURNEY }: { content?: Widen<typeof JOURNEY> }) {
+  const { steps, finale } = content;
 
   return (
     <section id={SECTION_IDS.howItWorks} className="bg-cream">
       <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-[34px] sm:px-8 lg:px-[70px] lg:pb-[110px]">
         <Reveal>
-          <h2 className="fluid-heading text-center font-display font-bold text-ink">{JOURNEY.heading}</h2>
+          <h2 className="fluid-heading text-center font-display font-bold text-ink">{content.heading}</h2>
         </Reveal>
 
         {/* Desktop board */}

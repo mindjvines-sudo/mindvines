@@ -1,12 +1,14 @@
 import { Reveal } from "@/components/animations/Reveal";
 import { FOUNDER_NOTE } from "@/lib/content";
+import type { Widen } from "@/lib/cms/widen";
 import { cn } from "@/lib/utils";
 
-type Run = (typeof FOUNDER_NOTE.paragraphs)[number][number];
+export type FounderNoteContent = Widen<typeof FOUNDER_NOTE>;
+type Run = FounderNoteContent["paragraphs"][number][number];
 
 /** The founder's letter, set on a page torn out of a spiral notebook. */
-export function FounderNote() {
-  const { heading, paragraphs, signOff, author } = FOUNDER_NOTE;
+export function FounderNote({ content = FOUNDER_NOTE }: { content?: FounderNoteContent }) {
+  const { heading, paragraphs, signOff, author } = content;
 
   return (
     <section className="bg-butter">
@@ -39,7 +41,7 @@ export function FounderNote() {
   );
 }
 
-function renderRuns(runs: Run[]) {
+function renderRuns(runs: readonly Run[]) {
   return runs.map((run, index) =>
     run.accent || run.italic ? (
       <span key={index} className={cn(run.accent && "font-black text-tan", run.italic && "italic")}>

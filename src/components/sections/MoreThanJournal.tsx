@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Reveal } from "@/components/animations/Reveal";
 import { PillButton } from "@/components/ui/PillButton";
 import { MORE_THAN_JOURNAL } from "@/lib/content";
+import type { Widen } from "@/lib/cms/widen";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,14 +11,14 @@ import { cn } from "@/lib/utils";
  * middle. Every card carries a thicker coloured rule along its rounded top —
  * amber on the light cards, tan on the stone ones.
  */
-export function MoreThanJournal() {
-  const { cohort, perspectives, reviewed, physical } = MORE_THAN_JOURNAL;
+export function MoreThanJournal({ content = MORE_THAN_JOURNAL }: { content?: Widen<typeof MORE_THAN_JOURNAL> }) {
+  const { cohort, perspectives, reviewed, physical } = content;
 
   return (
     <section className="bg-paper">
       <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-[34px] sm:px-8 lg:pb-[150px]">
         <Reveal>
-          <h2 className="fluid-heading text-center font-display font-bold text-ink">{MORE_THAN_JOURNAL.heading}</h2>
+          <h2 className="fluid-heading text-center font-display font-bold text-ink">{content.heading}</h2>
         </Reveal>
 
         <div className="mx-auto mt-10 grid max-w-[1181px] gap-8 md:grid-cols-2 lg:mt-[40px] lg:grid-cols-[331fr_413fr_332fr] lg:gap-[50px]">

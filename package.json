@@ -18,7 +18,8 @@
     "test:locations": "tsx --conditions=react-server --test tests/locations.test.ts",
     "test:recovery": "tsx --conditions=react-server --test tests/registration-recovery.test.ts",
     "test:pilot": "tsx --conditions=react-server --test tests/pilot.test.ts",
-    "test:plan-controls": "tsx --conditions=react-server --test tests/plan-availability.test.ts"
+    "test:plan-controls": "tsx --conditions=react-server --test tests/plan-availability.test.ts",
+    "test:cms": "tsx --conditions=react-server --test tests/cms.test.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",
@@ -38,6 +39,7 @@
     "nodemailer": "^10.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "sanitize-html": "^2.17.0",
     "server-only": "^0.0.1",
     "zod": "^4.6.5"
   },
@@ -48,6 +50,7 @@
     "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",

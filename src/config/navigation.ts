@@ -8,7 +8,7 @@ export type AdminNavGroup = "Subscription Management" | "Pilot Registration" | "
 /** Sidebar icons, by name (see components/admin/admin-shell). */
 export type AdminNavIcon =
   | "registrations" | "active" | "expiring" | "expired" | "pending" | "cancelled"
-  | "plans" | "pilot" | "programmes" | "topics" | "enquiries" | "testimonials" | "ageGroups" | "locations" | "addLocation" | "directory" | "blog" | "media" | "settings";
+  | "plans" | "pilot" | "programmes" | "topics" | "enquiries" | "testimonials" | "ageGroups" | "locations" | "addLocation" | "directory" | "blog" | "pages" | "media" | "settings";
 
 export type AdminNavItem = { label: string; href: string; resource: Resource; group: AdminNavGroup; icon: AdminNavIcon };
 
@@ -36,6 +36,7 @@ export const adminNavigation: AdminNavItem[] = [
   { label: "Location Directory", href: "/admin/locations/directory", resource: "locations", group: "Location Management", icon: "directory" },
   { label: "Enquiries", href: "/admin/enquiries", resource: "enquiries", group: "Customers", icon: "enquiries" },
   { label: "Testimonials", href: "/admin/testimonials", resource: "testimonials", group: "Customers", icon: "testimonials" },
+  { label: "Pages", href: "/admin/pages", resource: "pages", group: "Website content", icon: "pages" },
   { label: "Age Groups", href: "/admin/age-groups", resource: "ageGroups", group: "Website content", icon: "ageGroups" },
   { label: "Blog", href: "/admin/blog", resource: "blog", group: "Website content", icon: "blog" },
   { label: "Media Library", href: "/admin/media", resource: "media", group: "Website content", icon: "media" },
