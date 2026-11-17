@@ -9,7 +9,7 @@ export function ageInYears(dob: string, now = new Date()) {
   return age;
 }
 
-/** A real calendar date, for a child of school age. */
+/** A real calendar date, for a child aged 2 to 16. */
 const dateOfBirth = z
   .string()
   .trim()
@@ -20,8 +20,8 @@ const dateOfBirth = z
   }, "Enter a valid date")
   .refine((value) => {
     const age = ageInYears(value);
-    return age >= 3 && age <= 17;
-  }, "Check the date of birth: the programme is for children aged 6 to 12");
+    return age >= 2 && age <= 16;
+  }, "Please enter a valid date of birth. Your child must meet the eligible age criteria for this programme.");
 
 const objectId = z.string().regex(/^[a-f\d]{24}$/i);
 

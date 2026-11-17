@@ -12,7 +12,7 @@ import { EMAIL_LOGO_CID, loadEmailLogo } from "@/services/email-logo.service";
  * Never throws: the enquiry is already saved, and a mail problem must not make
  * the visitor think it wasn't.
  */
-export async function sendEnquiryEmails(enquiry: { _id: { toString(): string }; name: string; email: string; phone?: string | null; childAge?: string | null; message?: string | null; createdAt?: Date }) {
+export async function sendEnquiryEmails(enquiry: { _id: { toString(): string }; name: string; email: string; phone?: string | null; childName?: string | null; childAge?: string | null; message?: string | null; createdAt?: Date }) {
   try {
     const logo = await loadEmailLogo();
     const data = {
@@ -20,6 +20,7 @@ export async function sendEnquiryEmails(enquiry: { _id: { toString(): string }; 
       name: enquiry.name,
       email: enquiry.email,
       phone: enquiry.phone,
+      childName: enquiry.childName,
       childAge: enquiry.childAge,
       message: enquiry.message,
       receivedAt: enquiry.createdAt ?? new Date(),

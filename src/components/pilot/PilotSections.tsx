@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { connection } from "next/server";
+import { AvailabilityCheck } from "@/components/pilot/AvailabilityCheck";
 import { clientIp } from "@/lib/client-ip";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { PILOT_FEATURES_DEFAULT, PILOT_INTRO_DEFAULT, PILOT_PLANS_DEFAULT, type PilotFeaturesContent, type PilotIntroContent, type PilotPlansContent } from "@/lib/pilot-content";
@@ -15,7 +16,7 @@ export function PilotIntro({ content = PILOT_INTRO_DEFAULT }: { content?: PilotI
     <section className={`${BAND} pt-10 lg:pt-[64px]`}>
       <div className="mx-auto max-w-[1100px]">
         <h1 className="font-display text-[34px] font-semibold leading-tight text-ink lg:text-[44px]">{content.heading}</h1>
-        <p className="mt-3 max-w-[720px] text-[18px] leading-relaxed">{content.lead}</p>
+        <p className="mt-3 text-[18px] leading-relaxed">{content.lead}</p>
         <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {content.steps.map((step, index) => (
             <li key={index} className="rounded-[20px] bg-card p-5 shadow-card">
@@ -47,7 +48,6 @@ export function PilotFeatures({ content = PILOT_FEATURES_DEFAULT }: { content?: 
   );
 }
 
-const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric" });
 const months = (count: number) => `${count} ${count === 1 ? "month" : "months"}`;
 
 function PlanCard({ plan, code }: { plan: PublicPilotPlan; code?: string }) {
@@ -66,10 +66,6 @@ function PlanCard({ plan, code }: { plan: PublicPilotPlan; code?: string }) {
         <span className="font-display text-[34px] font-semibold text-ink">{formatPlanPrice(plan.offerPrice)}</span>
         {plan.originalPrice > plan.offerPrice && <span className="text-[18px] text-ink/60 line-through">{formatPlanPrice(plan.originalPrice)}</span>}
         <span className="text-[14px] text-ink/70">+ GST</span>
-      </p>
-      <p className="mt-3 text-[15px]">
-        {open ? (plan.slotsLeft <= 20 ? <strong>Only {plan.slotsLeft} {plan.slotsLeft === 1 ? "place" : "places"} left</strong> : <>{plan.slotsLeft} places available</>) : <strong>Fully booked</strong>}
-        {" · "}Register by {dateLabel(plan.endDate)}
       </p>
       {plan.terms && (
         <details className="mt-4 text-[15px]">
@@ -132,14 +128,8 @@ export async function PilotPlans({ code, content = PILOT_PLANS_DEFAULT }: { code
           <p role="status" className="mt-8 rounded-[28px] bg-card p-8 text-[18px] shadow-card">No pilot plans are open for registration right now. Please check back soon, or <Link href="/subscriptions" className="font-bold underline underline-offset-4">choose a standard plan</Link>.</p>
         )}
 
-        <form method="get" className="mt-12 max-w-[460px]">
-          <label htmlFor="code" className="text-[16px] font-bold">Have an access code?</label>
-          <div className="mt-2 flex gap-3">
-            <input id="code" name="code" defaultValue={code} autoComplete="off" spellCheck={false} maxLength={40} aria-describedby={codeMessage ? "code-error" : undefined} aria-invalid={codeMessage ? true : undefined} className="h-12 w-full rounded-xl border border-field-line bg-paper px-4 text-[17px] uppercase text-ink" />
-            <button type="submit" className="inline-flex h-12 shrink-0 items-center rounded-full border border-ink/30 px-6 text-[16px] font-bold text-ink hover:bg-stone">Apply</button>
-          </div>
-          {codeMessage && <p id="code-error" role="alert" className="mt-2 text-[15px] font-bold text-red-800">{codeMessage}</p>}
-        </form>
+        {codeMessage && <p role="alert" className="mt-8 text-[15px] font-bold text-red-800">{codeMessage}</p>}
+        <AvailabilityCheck />
       </div>
     </section>
   );

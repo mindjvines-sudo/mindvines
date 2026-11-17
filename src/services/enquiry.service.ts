@@ -11,6 +11,7 @@ export async function createEnquiry(input: Omit<EnquiryInput, "company">, ipAddr
     name: input.name,
     email: input.email,
     phone: input.phone || undefined,
+    childName: input.childName || undefined,
     subject: input.subject || undefined,
     childAge: input.childAge || undefined,
     message: input.message ?? "",

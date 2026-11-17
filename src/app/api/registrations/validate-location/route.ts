@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { clientIp } from "@/lib/client-ip";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { recordUnservedSearch } from "@/services/area-interest.service";
 import { NotServiceableError, verifyServiceable } from "@/services/location.service";
 import { validateLocationSchema } from "@/validations/location.schema";
 
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     if (error instanceof NotServiceableError) {
+      if (error.reason !== "INVALID_PINCODE" && error.reason !== "INVALID_COUNTRY") await recordUnservedSearch(body.data.pincode.replace(/\s+/g, "")).catch((e) => console.error("Could not record pincode search", e));
       return NextResponse.json({ serviceable: false, error: error.message }, { status: error.reason === "INVALID_PINCODE" ? 400 : 200 });
     }
     console.error("Location validation failed", error);

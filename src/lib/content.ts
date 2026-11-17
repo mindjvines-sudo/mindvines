@@ -40,28 +40,40 @@ export type MenuItem =
   | { label: string; href: string; children?: never }
   | { label: string; href?: never; children: { label: string; href: string }[] };
 
+/** One row of the editable header menu. "topics" and "plans" are groups whose links are built from the published age groups and plans. */
+export type MenuConfigItem = { kind: "link" | "topics" | "plans"; label: string; href: string; hidden?: boolean };
+
+/** The menu as first shipped; Admin → Menu saves a changed copy. */
+export const DEFAULT_MENU: MenuConfigItem[] = [
+  { kind: "link", label: "How it Works", href: `/#${SECTION_IDS.howItWorks}` },
+  { kind: "link", label: "Registration", href: REGISTER_HREF },
+  { kind: "topics", label: "A Glimpse of few topics", href: "" },
+  { kind: "plans", label: "Subscription plans", href: "" },
+  { kind: "link", label: "Renew subscription", href: "/renew" },
+  { kind: "link", label: "FAQ", href: `/#${SECTION_IDS.faq}` },
+  { kind: "link", label: "Contact us", href: `/#${SECTION_IDS.contact}` },
+];
+
 /**
- * The header menu. Topic links open each age group's own page on this site
- * (wherever the admin published it), and plan links open the plans page on
- * that age; an age without a published page is left out.
+ * The header menu, in the order set in Admin → Menu (or the default). Topic
+ * links open each age group's own page on this site (wherever the admin
+ * published it), and plan links open the plans page on that age; a group
+ * with nothing under it is left out.
  */
-export function buildMenu(agePages: { ageGroup: string; slug: string }[]): MenuItem[] {
-  const menu: MenuItem[] = [
-    { label: "How it Works", href: `/#${SECTION_IDS.howItWorks}` },
-    {
-      label: "A Glimpse of few topics",
-      children: agePages.map((page) => ({ label: `Ages ${page.ageGroup} yrs`, href: `/age-groups/${page.slug}#${SECTION_IDS.topics}` })),
-    },
-    {
-      label: "Subscription plans",
-      children: SUBSCRIPTION_AGE_GROUPS.map((age) => ({ label: `Ages ${age}`, href: `/subscriptions?age=${age}` })),
-    },
-    { label: "Renew subscription", href: "/renew" },
-    { label: "FAQ", href: `/#${SECTION_IDS.faq}` },
-    { label: "Contact us", href: `/#${SECTION_IDS.contact}` },
-    { label: "Registration", href: REGISTER_HREF },
-  ];
-  return menu.filter((item) => !item.children || item.children.length > 0);
+export function buildMenu(agePages: { ageGroup: string; slug: string }[], config: MenuConfigItem[] = DEFAULT_MENU): MenuItem[] {
+  const menu: MenuItem[] = [];
+  for (const item of config) {
+    if (item.hidden || !item.label.trim()) continue;
+    if (item.kind === "topics") {
+      const children = agePages.map((page) => ({ label: `Ages ${page.ageGroup} yrs`, href: `/age-groups/${page.slug}#${SECTION_IDS.topics}` }));
+      if (children.length > 0) menu.push({ label: item.label, children });
+    } else if (item.kind === "plans") {
+      menu.push({ label: item.label, children: SUBSCRIPTION_AGE_GROUPS.map((age) => ({ label: `Ages ${age}`, href: `/subscriptions?age=${age}` })) });
+    } else if (item.href) {
+      menu.push({ label: item.label, href: item.href });
+    }
+  }
+  return menu;
 }
 
 export const HERO = {
@@ -395,7 +407,8 @@ export const CONTACT = {
   heading: "Get in Touch!",
   formHeading: "Let's Connect",
   form: {
-    name: "First name",
+    name: "Parent name",
+    childName: "Child name",
     childAge: "Child's age",
     email: "Email",
     phone: "Phone",

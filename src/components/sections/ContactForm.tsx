@@ -39,11 +39,23 @@ export function ContactForm() {
           <input
             name="name"
             type="text"
-            autoComplete="given-name"
+            autoComplete="name"
             required
             maxLength={120}
             aria-invalid={Boolean(errors?.name)}
             className={fieldClass(errors?.name)}
+          />
+        </Field>
+
+        <Field label={form.childName} required error={errors?.childName}>
+          <input
+            name="childName"
+            type="text"
+            autoComplete="off"
+            required
+            maxLength={120}
+            aria-invalid={Boolean(errors?.childName)}
+            className={fieldClass(errors?.childName)}
           />
         </Field>
 
@@ -69,11 +81,12 @@ export function ContactForm() {
           />
         </Field>
 
-        <Field label={form.phone} error={errors?.phone}>
+        <Field label={form.phone} required error={errors?.phone}>
           <input
             name="phone"
             type="tel"
             autoComplete="tel"
+            required
             aria-invalid={Boolean(errors?.phone)}
             className={fieldClass(errors?.phone)}
           />

@@ -77,6 +77,8 @@ export function phoneProblem(countryCode: string, nationalNumber: string): strin
 export function normalisePhone(countryCode: string, value: string) {
   const dial = findCountry(countryCode)?.dial ?? "";
   let digits = value.replace(/\D/g, "");
-  if (dial && digits.startsWith(dial) && digits.length > dial.length + 6) digits = digits.slice(dial.length);
+  // India's numbers are exactly ten digits, so a ten-digit number that happens to start 91 is not "+91" plus eight digits.
+  const longEnough = countryCode.toUpperCase() === "IN" ? digits.length > 10 : digits.length > dial.length + 6;
+  if (dial && digits.startsWith(dial) && longEnough) digits = digits.slice(dial.length);
   return digits.replace(/^0+(?=\d{6})/, "");
 }

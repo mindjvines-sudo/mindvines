@@ -17,6 +17,7 @@ export function MediaPicker({
   hideLabel = false,
   initial = null,
   folder = "general",
+  onChange,
 }: {
   name: string;
   label: string;
@@ -24,6 +25,8 @@ export function MediaPicker({
   hideLabel?: boolean;
   initial?: MediaItem | null;
   folder?: string;
+  /** Called whenever the selection changes (a chosen image, or null once removed). */
+  onChange?: (media: MediaItem | null) => void;
 }) {
   const [selected, setSelected] = useState<MediaItem | null>(initial);
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +50,7 @@ export function MediaPicker({
               <Button variant="ghost" size="sm" onClick={() => setIsOpen(true)}>
                 Change
               </Button>
-              <Button variant="danger-soft" size="sm" onClick={() => setSelected(null)}>
+              <Button variant="danger-soft" size="sm" onClick={() => { setSelected(null); onChange?.(null); }}>
                 Remove
               </Button>
             </div>
@@ -73,6 +76,7 @@ export function MediaPicker({
           onClose={() => setIsOpen(false)}
           onSelect={(media) => {
             setSelected(media);
+            onChange?.(media);
             setIsOpen(false);
           }}
         />

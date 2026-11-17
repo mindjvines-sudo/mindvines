@@ -94,6 +94,7 @@ export default async function EnquiryDetailPage({ params }: { params: Promise<{ 
                   )
                 }
               />
+              {enquiry.childName && <ContactRow label="Child's name" value={enquiry.childName} />}
               {enquiry.childAge && <ContactRow label="Child's age" value={enquiry.childAge} />}
               <ContactRow
                 label="Received"

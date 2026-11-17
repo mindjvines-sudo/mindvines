@@ -233,6 +233,7 @@ export type EnquiryEmailData = {
   name: string;
   email: string;
   phone?: string | null;
+  childName?: string | null;
   childAge?: string | null;
   message?: string | null;
   receivedAt: Date | string;
@@ -245,7 +246,8 @@ export function enquiryThanksEmail(data: EnquiryEmailData) {
   const firstName = data.name.trim().split(/\s+/)[0] || "there";
   const intro = `Hi ${firstName}, thank you for getting in touch with ${data.site.name}! We have your message and someone from our team will reply soon, usually within one working day.`;
   const rows: Row[] = [
-    ["Name", data.name],
+    ["Parent name", data.name],
+    ...(data.childName ? ([["Child name", data.childName]] as Row[]) : []),
     ...(data.childAge ? ([["Child's age", data.childAge]] as Row[]) : []),
     ...(data.phone ? ([["Phone", data.phone]] as Row[]) : []),
     ["Received", dateText(data.receivedAt)],
@@ -272,7 +274,8 @@ export function enquiryThanksEmail(data: EnquiryEmailData) {
 /** The alert staff get when someone sends the form. Reply goes straight to the visitor (set by the sender). */
 export function enquiryAlertEmail(data: EnquiryEmailData) {
   const rows: Row[] = [
-    ["Name", data.name],
+    ["Parent name", data.name],
+    ["Child name", data.childName || "Not given"],
     ["Email", data.email],
     ["Phone", data.phone || "Not given"],
     ["Child's age", data.childAge || "Not given"],

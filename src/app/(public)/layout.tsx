@@ -4,6 +4,9 @@ import { connection } from "next/server";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { PromoPopup } from "@/components/promo/PromoPopup";
+import { getActivePromoPopup } from "@/services/promo-popup.service";
+import { getMenuConfig } from "@/services/settings.service";
 import { HERO, HOME_SEO, SITE, buildMenu } from "@/lib/content";
 import { listAgeGroupPagesByPlanAge } from "@/services/age-group.service";
 
@@ -90,6 +93,7 @@ export default async function PublicLayout({ children }: { children: React.React
   // database it still shows, minus the topic links.
   await connection();
   const agePages = await listAgeGroupPagesByPlanAge().catch(() => []);
+  const [menuConfig, promo] = await Promise.all([getMenuConfig().catch(() => undefined), getActivePromoPopup().catch(() => null)]);
 
   return (
     <div className={`${fredoka.variable} ${nunitoSans.variable} ${onest.variable} ${bricolage.variable} font-sans antialiased`}>
@@ -99,9 +103,10 @@ export default async function PublicLayout({ children }: { children: React.React
       >
         Skip to content
       </a>
-      <Header menu={buildMenu(agePages)} />
+      <Header menu={buildMenu(agePages, menuConfig)} />
       <main id="main">{children}</main>
       <Footer />
+      {promo && <PromoPopup config={promo} />}
     </div>
   );
 }

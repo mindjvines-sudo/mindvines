@@ -3,7 +3,7 @@
 export const PILOT_HEADING = "The pen pal adventure reimagined for today’s kids";
 
 export const PILOT_LEAD =
-  "Registrations are open only for our pilot batch. This is a paid pilot offered at a special discounted fee. Your child joins a small cohort of kids from different cities and shares thoughts through writing and drawing in a journal that travels.";
+  "Registrations are open only for our pilot batch. This is a paid pilot offered at a special discounted fee. Your child joins a small cohort of kids from different cities and shares thoughts through writing and drawing in a journal that travels. Over the pilot, your child picks topics they care about, reads what other kids have written and sketched, and adds their own voice to a growing, shared story. It is a screen-free way to build confidence, creativity and curiosity, while making friends across the country, and seats are limited so that every child gets proper attention.";
 
 export const PILOT_STEPS = [
   { title: "1. Pick topics for the pilot", text: "Choose 10 topics from the curated list to write or draw." },

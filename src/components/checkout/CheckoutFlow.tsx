@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { DEFAULT_COUNTRY, countriesByName, findCountry } from "@/lib/countries";
+import { NotifyWhenAvailable } from "@/components/pilot/NotifyWhenAvailable";
 import { NOT_SERVICEABLE_MESSAGE } from "@/lib/locations/pincode";
 import { formatPaise } from "@/lib/subscription-status";
 import { checkTopicPicks } from "@/lib/topics";
@@ -373,7 +374,6 @@ export function CheckoutFlow({
       {plan.description && <p className="mt-2 whitespace-pre-line text-[16px] leading-relaxed">{plan.description}</p>}
       <ul className="mt-5 space-y-2 text-[16px]">
         <li className="font-bold">{duration}</li>
-        <li className="font-bold">{plan.journalCount} {plan.journalCount === 1 ? "cycle" : "cycles"} included</li>
         {plan.features.map((feature, index) => (
           <li key={index} className="flex gap-3"><span aria-hidden className="font-bold">✓</span><span>{feature}</span></li>
         ))}
@@ -551,26 +551,14 @@ export function CheckoutFlow({
               <FormField id="f-state" label="State">
                 <input id="f-state" value={place.state} readOnly className={cn(INPUT, "h-12 bg-stone")} />
               </FormField>
-              {place.postOffices.length > 1 && (
-                <FormField id="f-postOffice" label="Post office" error={errors.postOffice}>
-                  <select
-                    id="f-postOffice"
-                    name="postOffice"
-                    value={details.postOffice}
-                    onChange={(event) => setDetail("postOffice", event.target.value)}
-                    className={cn(INPUT, "h-12")}
-                  >
-                    <option value="">Choose your post office</option>
-                    {place.postOffices.map((office) => <option key={office} value={office}>{office}</option>)}
-                  </select>
-                </FormField>
-              )}
             </>
           )}
           {place.status === "checking" && <p role="status" className="text-[15px] text-ink/70 sm:col-span-2">Checking your PIN code…</p>}
-          {place.status === "blocked" && (
+          {place.status === "blocked" && (isIndia && validPincode ? (
+            <div role="alert" className="rounded-[20px] bg-stone p-5 sm:col-span-2"><NotifyWhenAvailable key={pincode} pincode={pincode} /></div>
+          ) : (
             <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[16px] font-bold text-red-800 sm:col-span-2">{place.message}</p>
-          )}
+          ))}
         </Section>
 
         <Section title="Contact">
@@ -610,11 +598,9 @@ export function CheckoutFlow({
           </Consent>
           <Consent id="f-allowFeature" checked={details.allowFeature} onChange={(value) => setDetail("allowFeature", value)}>
             I give permission for my child&apos;s writing or sketches to be featured by Mindvines on its website or social media.
-            <span className="text-ink/60"> (Optional)</span>
           </Consent>
           <Consent id="f-whatsappUpdates" checked={details.whatsappUpdates} onChange={(value) => setDetail("whatsappUpdates", value)}>
             I&apos;d like to receive news, offers and announcements from Mindvines on WhatsApp.
-            <span className="text-ink/60"> (Optional)</span>
           </Consent>
         </fieldset>
 

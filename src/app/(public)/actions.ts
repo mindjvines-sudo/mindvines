@@ -19,7 +19,8 @@ export async function submitEnquiryAction(_prev: ContactFormState, formData: For
   const validated = enquiryInputSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
-    phone: formData.get("phone") || undefined,
+    phone: formData.get("phone") ?? "",
+    childName: formData.get("childName") ?? "",
     childAge: formData.get("childAge") || undefined,
     message: formData.get("message") || undefined,
     company: formData.get("company") || undefined,
