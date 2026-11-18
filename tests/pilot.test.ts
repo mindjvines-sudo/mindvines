@@ -13,6 +13,7 @@ import {
   normaliseAccessCode,
   offerPrice,
   pilotAvailability,
+  pilotBadgeText,
   savingsPercent,
   slotsLeft,
 } from "../src/lib/pilot";
@@ -89,6 +90,31 @@ test("the admin form is turned into a plan whose price and months are computed o
   assert.equal(plan.durationMonths, 1);
   assert.equal(plan.startDate.toISOString(), "2026-05-31T18:30:00.000Z");
   assert.equal("registrationCount" in plan, false);
+});
+
+test("pilot badges support custom text, visibility and automatic savings for older plans", () => {
+  const prices = { originalPrice: 370, offerPrice: 270 };
+  assert.equal(pilotBadgeText(prices), "Save 27%");
+  assert.equal(pilotBadgeText({ ...prices, badgeText: "  Limited offer  " }), "Limited offer");
+  assert.equal(pilotBadgeText({ ...prices, badgeEnabled: false, badgeText: "Limited offer" }), "");
+  assert.equal(pilotBadgeText({ ...prices, badgeEnabled: true, badgeText: " " }), "Save 27%");
+  assert.equal(pilotBadgeText({ originalPrice: 370, offerPrice: 370 }), "");
+  assert.equal(pilotBadgeText({ originalPrice: 370, offerPrice: 370, badgeText: "New plan" }), "New plan");
+});
+
+test("badge controls parse form values explicitly and do not change pricing", () => {
+  const defaults = pilotPlanInputSchema.parse(form);
+  assert.equal(defaults.badgeEnabled, true);
+  assert.equal(defaults.badgeText, "");
+  for (const [value, enabled] of [["true", true], ["false", false], [true, true], [false, false]] as const) {
+    const plan = pilotPlanInputSchema.parse({ ...form, badgeEnabled: value, badgeText: "  Founding offer  " });
+    assert.equal(plan.badgeEnabled, enabled);
+    assert.equal(plan.badgeText, "Founding offer");
+    assert.equal(plan.offerPrice, defaults.offerPrice);
+    assert.equal(plan.discountValue, defaults.discountValue);
+  }
+  assert.equal(pilotPlanInputSchema.safeParse({ ...form, badgeText: "x".repeat(41) }).success, false);
+  assert.equal(pilotPlanInputSchema.safeParse({ ...form, badgeEnabled: "invalid" }).success, false);
 });
 
 test("rejects bad limits, prices, dates, discounts and incomplete restrictions", () => {
@@ -211,6 +237,40 @@ const reserve = async (planId: Types.ObjectId, email = `p${Math.random()}@exampl
   await svc.reservePilotSlot({ registrationId, pilotPlanId: planId, email, ...extra });
   return registrationId;
 };
+
+db("badge settings persist through create, hide, re-enable and reset on public pilot plans", async () => {
+  const { svc } = await modules();
+  const { SubscriptionPlan } = await import("../src/models/SubscriptionPlan");
+  const base = await SubscriptionPlan.create({ name: "Badge base plan", description: "Test", ageGroup: "6-8", price: 550, durationMonths: 1, journalCount: 1, status: "PUBLISHED" });
+  const day = (offset: number) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+  const input = pilotPlanInputSchema.parse({ ...form, basePlan: base._id.toString(), startDate: day(-2), endDate: day(5), badgeEnabled: "true", badgeText: "Founding offer" });
+  const adminId = new Types.ObjectId().toString();
+  const plan = await svc.createPilotPlan(input, adminId);
+  const id = plan._id.toString();
+  assert.equal((await svc.getPilotPlan(id))?.badgeText, "Founding offer");
+  assert.equal((await svc.getPilotPlanForVisitor(id))?.badgeText, "Founding offer");
+  assert.equal((await svc.listPublicPilotPlans()).find((entry) => entry.id === id)?.badgeText, "Founding offer");
+
+  await svc.updatePilotPlan(id, { ...input, badgeEnabled: false }, adminId);
+  const hidden = await svc.getPilotPlan(id);
+  assert.equal(hidden?.badgeEnabled, false);
+  assert.equal(hidden?.badgeText, "Founding offer", "hiding preserves the custom text");
+  assert.equal((await svc.getPilotPlanForVisitor(id))?.badgeEnabled, false);
+  assert.equal((await svc.listPublicPilotPlans()).find((entry) => entry.id === id)?.badgeText, "");
+
+  await svc.updatePilotPlan(id, { ...input, badgeEnabled: true }, adminId);
+  assert.equal((await svc.listPublicPilotPlans()).find((entry) => entry.id === id)?.badgeText, "Founding offer");
+  await svc.updatePilotPlan(id, { ...input, badgeText: "" }, adminId);
+  const reset = (await svc.listPublicPilotPlans()).find((entry) => entry.id === id);
+  assert.equal(reset?.badgeText, "Save 33%");
+  assert.equal(reset?.offerPrice, input.offerPrice);
+  assert.equal(reset?.originalPrice, input.originalPrice);
+
+  const restricted = await svc.createPilotPlan({ ...input, eligibilityType: "ACCESS_CODE", accessCode: "BADGE-TEST" }, adminId);
+  assert.equal((await svc.findPilotPlanByCode("BADGE-TEST"))?.badgeText, "Founding offer");
+  await svc.updatePilotPlan(restricted._id.toString(), { ...input, eligibilityType: "ACCESS_CODE", accessCode: "BADGE-TEST", badgeEnabled: false }, adminId);
+  assert.equal((await svc.findPilotPlanByCode("BADGE-TEST"))?.badgeText, "");
+});
 
 db("20 families racing for 5 places: exactly 5 get one, the counter never passes the limit", async () => {
   const { PilotPlan, PilotRegistration, svc } = await modules();

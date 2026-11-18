@@ -21,6 +21,14 @@ const siteSettingsSchema = new Schema(
             label: { type: String, required: true, trim: true, maxlength: 60 },
             href: { type: String, trim: true, maxlength: 300, default: "" },
             hidden: { type: Boolean, default: false },
+            children: {
+              type: [new Schema({
+                ageGroup: { type: String, required: true },
+                label: { type: String, trim: true, maxlength: 60 },
+                href: { type: String, trim: true, maxlength: 300 },
+              }, { _id: false })],
+              default: undefined,
+            },
           },
           { _id: false }
         ),

@@ -61,7 +61,13 @@ export async function getMenuConfig(): Promise<MenuConfigItem[] | undefined> {
   await connectToDatabase();
   const settings = await SiteSettings.findOne().select("menuItems").lean();
   const items = settings?.menuItems;
-  return items && items.length > 0 ? items.map((item) => ({ kind: item.kind ?? "link", label: item.label, href: item.href ?? "", hidden: item.hidden ?? false })) : undefined;
+  return items && items.length > 0 ? items.map((item) => ({
+    kind: item.kind ?? "link",
+    label: item.label,
+    href: item.href ?? "",
+    hidden: item.hidden ?? false,
+    children: item.children?.map((child) => ({ ageGroup: child.ageGroup, label: child.label ?? undefined, href: child.href ?? undefined })),
+  })) : undefined;
 }
 
 /** An empty list restores the built-in menu. */

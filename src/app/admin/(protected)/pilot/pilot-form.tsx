@@ -12,6 +12,7 @@ import {
   PILOT_ELIGIBILITY_LABELS,
   PILOT_ELIGIBILITY_TYPES,
   offerPrice,
+  pilotBadgeText,
   savingsPercent,
 } from "@/lib/pilot";
 import { formatPlanPrice } from "@/lib/subscriptions";
@@ -35,10 +36,13 @@ export function PilotForm({ action, defaultValues, submitLabel, basePlans, locke
   const [original, setOriginal] = useState(String(defaultValues?.originalPrice ?? ""));
   const [type, setType] = useState(defaultValues?.discountType ?? "FIXED");
   const [value, setValue] = useState(String(defaultValues?.discountValue ?? ""));
+  const [badgeEnabled, setBadgeEnabled] = useState(defaultValues?.badgeEnabled ?? true);
+  const [badgeText, setBadgeText] = useState(defaultValues?.badgeText ?? "");
 
   const originalNumber = Number(original);
   const valueNumber = Number(value);
   const preview = originalNumber > 0 && value !== "" && Number.isFinite(valueNumber) ? offerPrice(originalNumber, type, valueNumber) : null;
+  const badgePreview = pilotBadgeText({ badgeEnabled, badgeText, originalPrice: originalNumber, offerPrice: preview ?? originalNumber });
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,6 +97,22 @@ export function PilotForm({ action, defaultValues, submitLabel, basePlans, locke
                 {preview === null ? "—" : <><strong>{formatPlanPrice(preview)}</strong><span className="ml-2 text-slate-500">{savingsPercent(originalNumber, preview)}% off</span></>}
               </div>
             </div>
+          </div>
+        </FormSection>
+
+        <FormSection title="Plan card badge" description="Choose whether this plan shows a badge and what it says.">
+          <Field label="Badge visibility" htmlFor="badgeEnabled" error={errors?.badgeEnabled}>
+            <Select id="badgeEnabled" name="badgeEnabled" value={String(badgeEnabled)} onChange={(event) => setBadgeEnabled(event.target.value === "true")} invalid={!!errors?.badgeEnabled}>
+              <option value="true">Show badge</option>
+              <option value="false">Hide badge</option>
+            </Select>
+          </Field>
+          <Field label="Badge text" htmlFor="badgeText" error={errors?.badgeText} hint="Leave empty to show the calculated saving, such as “Save 27%”. Custom text is kept when you hide the badge.">
+            <Input id="badgeText" name="badgeText" maxLength={40} value={badgeText} onChange={(event) => setBadgeText(event.target.value)} invalid={!!errors?.badgeText} placeholder="Save 27% or Limited offer" />
+          </Field>
+          <div aria-live="polite" className="rounded-xl border border-line bg-slate-50 p-4">
+            <p className="mb-2 text-[13px] font-medium text-slate-700">Badge preview</p>
+            {badgePreview ? <span className="inline-block max-w-full break-words rounded-full bg-amber px-3 py-1 text-[13px] font-bold text-ink">{badgePreview}</span> : <p className="text-sm text-slate-500">{badgeEnabled ? "No badge. Add text or set a discount to show one." : "Badge hidden."}</p>}
           </div>
         </FormSection>
 

@@ -57,10 +57,9 @@ function PlanCard({ plan, code }: { plan: PublicPilotPlan; code?: string }) {
     <li className="flex flex-col rounded-[28px] bg-card p-6 shadow-card lg:p-8">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[15px] font-bold text-tan">{[plan.ageGroup && `Ages ${plan.ageGroup}`, plan.programmeName].filter(Boolean).join(" · ")}</p>
-        {plan.savingsPercent > 0 && <span className="rounded-full bg-amber px-3 py-1 text-[13px] font-bold text-ink">Save {plan.savingsPercent}%</span>}
+        {plan.badgeText && <span className="max-w-[50%] shrink-0 break-words rounded-full bg-amber px-3 py-1 text-[13px] font-bold text-ink">{plan.badgeText}</span>}
       </div>
       <h2 className="mt-1 font-display text-[28px] font-semibold leading-tight text-ink">{plan.name}</h2>
-      {plan.description && <p className="mt-2 whitespace-pre-line text-[16px] leading-relaxed">{plan.description}</p>}
       <p className="mt-5 text-[16px] font-bold">{months(plan.durationMonths)}</p>
       <p className="mt-2 flex items-baseline gap-3">
         <span className="font-display text-[34px] font-semibold text-ink">{formatPlanPrice(plan.offerPrice)}</span>

@@ -60,6 +60,15 @@ export function savingsPercent(original: number, offer: number): number {
   return original > 0 && offer < original ? Math.round(((original - offer) / original) * 100) : 0;
 }
 
+/** Older plans keep their calculated savings badge until the admin customises it. */
+export function pilotBadgeText(plan: { badgeEnabled?: boolean | null; badgeText?: string | null; originalPrice: number; offerPrice: number }): string {
+  if (plan.badgeEnabled === false) return "";
+  const text = plan.badgeText?.trim();
+  if (text) return text;
+  const savings = savingsPercent(plan.originalPrice, plan.offerPrice);
+  return savings > 0 ? `Save ${savings}%` : "";
+}
+
 export type PilotAvailability = "OPEN" | "FULLY_BOOKED" | "NOT_STARTED" | "ENDED" | "INACTIVE";
 export const PILOT_AVAILABILITY_LABELS: Record<PilotAvailability, string> = {
   OPEN: "Open",

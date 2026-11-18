@@ -12,6 +12,7 @@ import {
   reservationExpiry,
   slotsLeft,
   savingsPercent,
+  pilotBadgeText,
   type PilotAvailability,
 } from "@/lib/pilot";
 import { Payment } from "@/models/Payment";
@@ -48,6 +49,8 @@ async function toPublicPlan(plan: {
   _id: Types.ObjectId;
   name: string;
   description?: string | null;
+  badgeEnabled?: boolean | null;
+  badgeText?: string | null;
   basePlan: Types.ObjectId;
   durationMonths: number;
   originalPrice: number;
@@ -71,6 +74,7 @@ async function toPublicPlan(plan: {
     originalPrice: plan.originalPrice,
     offerPrice: plan.offerPrice,
     savingsPercent: savingsPercent(plan.originalPrice, plan.offerPrice),
+    badgeText: pilotBadgeText(plan),
     slotsLeft: slotsLeft(plan),
     maxRegistrations: plan.maxRegistrations,
     availability: pilotAvailability(plan) as PilotAvailability,
@@ -401,6 +405,8 @@ function planFields(input: PilotPlanInput) {
   return {
     name: input.name,
     description: input.description,
+    badgeEnabled: input.badgeEnabled,
+    badgeText: input.badgeText,
     basePlan: input.basePlan,
     duration: input.duration,
     customDuration: input.duration === "CUSTOM" ? input.customDuration : null,

@@ -11,7 +11,7 @@
  * `defaults()` is also the shape stored content must conform to, so a
  * component can never be handed something it can't draw.
  */
-import { CONTACT, FAQ, FOUNDER_NOTE, HERO, JOURNEY, MORE_THAN_JOURNAL, WHAT_GROWS } from "@/lib/content";
+import { CONTACT, FAQ, SITE, FOUNDER_NOTE, HERO, JOURNEY, MORE_THAN_JOURNAL, WHAT_GROWS } from "@/lib/content";
 import { LEGAL_DOCUMENTS } from "@/lib/legal-content";
 import { PILOT_FEATURES_DEFAULT, PILOT_INTRO_DEFAULT, PILOT_PLANS_DEFAULT } from "@/lib/pilot-content";
 import type { SystemPageKey } from "@/lib/cms/reserved";
@@ -56,7 +56,7 @@ export const COMPONENTS: Record<ComponentKey, ComponentMeta> = {
   ageGroups: { label: "Age groups", hint: "Cards linking to each age group's page", functional: true, pages: ["home"], single: true, note: "The cards and their heading are managed in Age Groups, so they always match the age group pages. Here you choose where this section appears, and whether it shows.", defaults: () => ({}) },
   founderNote: { label: "Founder's note", hint: "The letter on notebook paper", functional: false, pages: ["home"], single: true, defaults: founderNote },
   faq: { label: "FAQ (site style)", hint: "Question and answer rows", functional: false, pages: "any", single: false, defaults: () => structuredClone(FAQ) as Props },
-  contact: { label: "Contact & form", hint: "Contact details and the enquiry form", functional: true, pages: "any", single: true, note: "The enquiry form keeps sending to the same place; you can edit the headings around it. Email and phone come from site settings.", defaults: () => ({ heading: CONTACT.heading, formHeading: CONTACT.formHeading }) },
+  contact: { label: "Contact & form", hint: "Contact details and the enquiry form", functional: true, pages: "any", single: true, note: "The enquiry form keeps sending to the same place; you can edit the headings around it. Email and phone shown beside it can be edited here too.", defaults: () => ({ heading: CONTACT.heading, formHeading: CONTACT.formHeading, email: SITE.email, phone: SITE.phone }) },
   registrationSwitch: { label: "Registration type switch", hint: "Standard / Pilot toggle", functional: true, pages: ["subscriptions", "pilot"], single: true, note: "Fixed navigation between the two ways to register.", defaults: () => ({}) },
   subscriptionPlans: { label: "Subscription plans", hint: "Live plans by age group", functional: true, pages: ["subscriptions"], single: true, note: "Plans, prices and buttons always come from Subscription Plans. Here you edit the heading and introduction.", defaults: () => ({ title: "Subscription plans", intro: "Choose a journal journey for your child. A little time to write, sketch, and discover a different point of view." }) },
   pilotIntro: { label: "Pilot introduction", hint: "Heading, lead and four steps", functional: false, pages: ["pilot"], single: true, defaults: () => structuredClone(PILOT_INTRO_DEFAULT) as Props },

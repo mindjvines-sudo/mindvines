@@ -8,7 +8,7 @@ export const enquiryInputSchema = z.object({
     .trim()
     .min(1, "Phone number is required")
     .regex(/^[0-9+\-\s()]{7,20}$/, "Enter a valid phone number"),
-  childName: z.string().trim().min(1, "Enter the child's name").max(120),
+  childName: z.string().trim().max(120).optional(),
   subject: z.string().trim().max(150).optional(),
   // The home page "Let's Connect" form asks for the child's age and, like
   // the live site, leaves the message optional.

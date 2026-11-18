@@ -47,18 +47,6 @@ export function ContactForm() {
           />
         </Field>
 
-        <Field label={form.childName} required error={errors?.childName}>
-          <input
-            name="childName"
-            type="text"
-            autoComplete="off"
-            required
-            maxLength={120}
-            aria-invalid={Boolean(errors?.childName)}
-            className={fieldClass(errors?.childName)}
-          />
-        </Field>
-
         <Field label={form.childAge} error={errors?.childAge}>
           <input
             name="childAge"

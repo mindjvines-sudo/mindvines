@@ -2,8 +2,14 @@ import { Reveal } from "@/components/animations/Reveal";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { CONTACT, SECTION_IDS, SITE } from "@/lib/content";
 import type { Widen } from "@/lib/cms/widen";
+import { getSiteSettings } from "@/services/settings.service";
 
-export function Contact({ content = CONTACT }: { content?: Pick<Widen<typeof CONTACT>, "heading" | "formHeading"> }) {
+export async function Contact({ content = CONTACT }: { content?: Pick<Widen<typeof CONTACT>, "heading" | "formHeading"> & { email?: string; phone?: string } }) {
+  // A value edited in this section wins, then Admin → Settings, then the built-in details.
+  const edited = (value: string | undefined, builtIn: string) => (value?.trim() && value.trim() !== builtIn ? value.trim() : undefined);
+  const settings = await getSiteSettings().catch(() => null);
+  const email = edited(content.email, SITE.email) ?? (settings?.contactEmail?.trim() || SITE.email);
+  const phone = edited(content.phone, SITE.phone) ?? (settings?.contactPhone?.trim() || SITE.phone);
   return (
     <section id={SECTION_IDS.contact} className="bg-tan">
       <div className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 pt-[64px] sm:px-8 lg:grid-cols-[1fr_603px] lg:gap-12 lg:pb-[143px] lg:pl-[119px] lg:pr-[91px]">
@@ -13,16 +19,16 @@ export function Contact({ content = CONTACT }: { content?: Pick<Widen<typeof CON
             <div className="flex flex-wrap gap-x-2">
               <dt>Email:</dt>
               <dd>
-                <a href={`mailto:${SITE.email}`} className="transition-colors hover:text-paper">
-                  {SITE.email}
+                <a href={`mailto:${email}`} className="transition-colors hover:text-paper">
+                  {email}
                 </a>
               </dd>
             </div>
             <div className="flex flex-wrap gap-x-2">
               <dt>Phone:</dt>
               <dd>
-                <a href={`tel:${SITE.phone.replace(/[^\d+]/g, "")}`} className="transition-colors hover:text-paper">
-                  {SITE.phone}
+                <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="transition-colors hover:text-paper">
+                  {phone}
                 </a>
               </dd>
             </div>

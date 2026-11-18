@@ -40,6 +40,8 @@ export default async function EditPilotPlanPage({ params }: { params: Promise<{ 
         defaultValues={{
           name: plan.name,
           description: plan.description ?? "",
+          badgeEnabled: plan.badgeEnabled ?? true,
+          badgeText: plan.badgeText ?? "",
           basePlan: plan.basePlan.toString(),
           duration: plan.duration,
           customDuration: plan.customDuration ?? undefined,

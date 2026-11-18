@@ -40,8 +40,25 @@ export type MenuItem =
   | { label: string; href: string; children?: never }
   | { label: string; href?: never; children: { label: string; href: string }[] };
 
-/** One row of the editable header menu. "topics" and "plans" are groups whose links are built from the published age groups and plans. */
-export type MenuConfigItem = { kind: "link" | "topics" | "plans"; label: string; href: string; hidden?: boolean };
+export type MenuChildConfig = { ageGroup: string; label?: string; href?: string };
+
+/** Group links follow the published age groups unless the admin saves an override. */
+export type MenuConfigItem = { kind: "link" | "topics" | "plans"; label: string; href: string; hidden?: boolean; children?: MenuChildConfig[] };
+
+export type MenuAgePage = { ageGroup: string; slug: string };
+
+/** Shared by the editor and public menu so the displayed defaults stay in sync. */
+export function menuGroupLinks(item: MenuConfigItem, agePages: MenuAgePage[]) {
+  const defaults = item.kind === "topics"
+    ? agePages.map((page) => ({ ageGroup: page.ageGroup, label: `Ages ${page.ageGroup} yrs`, href: `/age-groups/${page.slug}#${SECTION_IDS.topics}` }))
+    : item.kind === "plans"
+      ? SUBSCRIPTION_AGE_GROUPS.map((age) => ({ ageGroup: age, label: `Ages ${age}`, href: `/subscriptions?age=${age}` }))
+      : [];
+  return defaults.map((child) => {
+    const override = item.children?.find((entry) => entry.ageGroup === child.ageGroup);
+    return { ...child, label: override?.label ?? child.label, href: override?.href ?? child.href };
+  });
+}
 
 /** The menu as first shipped; Admin → Menu saves a changed copy. */
 export const DEFAULT_MENU: MenuConfigItem[] = [
@@ -60,15 +77,13 @@ export const DEFAULT_MENU: MenuConfigItem[] = [
  * published it), and plan links open the plans page on that age; a group
  * with nothing under it is left out.
  */
-export function buildMenu(agePages: { ageGroup: string; slug: string }[], config: MenuConfigItem[] = DEFAULT_MENU): MenuItem[] {
+export function buildMenu(agePages: MenuAgePage[], config: MenuConfigItem[] = DEFAULT_MENU): MenuItem[] {
   const menu: MenuItem[] = [];
   for (const item of config) {
     if (item.hidden || !item.label.trim()) continue;
-    if (item.kind === "topics") {
-      const children = agePages.map((page) => ({ label: `Ages ${page.ageGroup} yrs`, href: `/age-groups/${page.slug}#${SECTION_IDS.topics}` }));
+    if (item.kind === "topics" || item.kind === "plans") {
+      const children = menuGroupLinks(item, agePages).map(({ label, href }) => ({ label, href }));
       if (children.length > 0) menu.push({ label: item.label, children });
-    } else if (item.kind === "plans") {
-      menu.push({ label: item.label, children: SUBSCRIPTION_AGE_GROUPS.map((age) => ({ label: `Ages ${age}`, href: `/subscriptions?age=${age}` })) });
     } else if (item.href) {
       menu.push({ label: item.label, href: item.href });
     }
@@ -407,8 +422,7 @@ export const CONTACT = {
   heading: "Get in Touch!",
   formHeading: "Let's Connect",
   form: {
-    name: "Parent name",
-    childName: "Child name",
+    name: "Name of parent",
     childAge: "Child's age",
     email: "Email",
     phone: "Phone",

@@ -40,8 +40,8 @@ export function AgePlanSwitcher({
           <p className="mt-3 text-[16px]">
             Already registered?{" "}
             <Link href="/renew" className="font-bold underline underline-offset-4">Renew your registration</Link>
-            {" "}or{" "}
-            <Link href="/renew" className="font-bold underline underline-offset-4">recover with your registered email</Link>
+            {/* {" "}or{" "} */}
+            {/* <Link href="/renew" className="font-bold underline underline-offset-4">recover with your registered email</Link> */}
           </p>
           <nav aria-label="Choose an age group" className="mt-8 flex flex-wrap justify-center gap-3">
             {panels.map(({ age: option }) => (

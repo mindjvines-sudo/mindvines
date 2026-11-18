@@ -19,7 +19,8 @@
     "test:recovery": "tsx --conditions=react-server --test tests/registration-recovery.test.ts",
     "test:pilot": "tsx --conditions=react-server --test tests/pilot.test.ts",
     "test:plan-controls": "tsx --conditions=react-server --test tests/plan-availability.test.ts",
-    "test:cms": "tsx --conditions=react-server --test tests/cms.test.ts"
+    "test:cms": "tsx --conditions=react-server --test tests/cms.test.ts",
+    "test:menu": "tsx --conditions=react-server --test tests/menu.test.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",

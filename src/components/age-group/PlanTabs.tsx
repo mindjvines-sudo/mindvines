@@ -144,13 +144,10 @@ function PlanCardView({
   const buttonClass = "inline-flex max-w-full h-[47px] items-center justify-center rounded-full border border-r-[3px] border-b-[3px] border-cocoa px-6 font-ui text-[18px] transition-colors";
   const button = (className: string) =>
     card.disabled ? (
-      <>
-        <button type="button" disabled aria-disabled="true" aria-describedby={`${descId}`} className={cn(buttonClass, "cursor-not-allowed bg-[#c8c1b8] text-ink/60", className)}>
-          {card.buttonLabel}
-          <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}</span>
-        </button>
-        <p id={descId} role="note" className="mt-3 max-w-[260px] text-center text-[16px] font-bold text-ink">{card.disabledMessage}</p>
-      </>
+      <button type="button" disabled aria-disabled="true" aria-describedby={descId} className={cn(buttonClass, "cursor-not-allowed bg-[#c8c1b8] text-ink/60", className)}>
+        {card.buttonLabel}
+        <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}</span>
+      </button>
     ) : card.select ? (
       <button
         type="button"
@@ -167,6 +164,11 @@ function PlanCardView({
         <span className="sr-only">: {titled ? `${card.title}, ${tab}` : tab}</span>
       </a>
     );
+  // A disabled card shows its message where the footnote would go.
+  const noteText = card.disabled ? card.disabledMessage : footnote;
+  const note = (className: string) => (
+    <p id={card.disabled ? descId : undefined} role={card.disabled ? "note" : undefined} className={cn("text-center font-bold", card.disabled ? "text-ink" : "text-[#717171]", className, !noteText && "invisible")}>{noteText}</p>
+  );
   const currentTag = card.select?.current && (
     <p className="absolute left-[12px] top-[17px] rounded-full bg-butter px-4 py-1 text-[14px] font-bold text-ink">Current plan</p>
   );
@@ -185,7 +187,7 @@ function PlanCardView({
           {priceNote && <p className="mt-[18px] text-[16px] font-bold leading-none text-[#717171]">{priceNote}</p>}
         </div>
         {button("mt-[80px] min-w-[207px]")}
-        {footnote && <p className="mt-[15px] text-center text-[18.2px] font-bold text-[#717171]">{footnote}</p>}
+        {noteText && note("mt-[15px] max-w-[260px] text-[16px]")}
       </div>
     );
   }
@@ -213,7 +215,7 @@ function PlanCardView({
         {priceNote && <p className="mt-[2px] text-[16px] font-bold text-[#717171]">{priceNote}</p>}
       </div>
       {button("mt-[70px] min-w-[227px] self-start")}
-      <p className={cn("mt-[20px] text-center text-[16px] font-bold text-[#717171]", !footnote && "invisible")}>{footnote}</p>
+      {note("mt-[20px] text-[16px]")}
     </div>
   );
 }

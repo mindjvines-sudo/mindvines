@@ -25,6 +25,8 @@ const pilotPlanSchema = new Schema(
     discountValue: { type: Number, required: true, min: 0 },
     // Worked out from the original price and discount on save; what is charged (before GST).
     offerPrice: { type: Number, required: true, min: 0 },
+    badgeEnabled: { type: Boolean, default: true },
+    badgeText: { type: String, trim: true, maxlength: 40, default: "" },
     maxRegistrations: { type: Number, required: true, min: 1 },
     registrationCount: { type: Number, required: true, default: 0, min: 0 },
     reservedCount: { type: Number, required: true, default: 0, min: 0 },

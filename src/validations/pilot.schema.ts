@@ -34,6 +34,8 @@ export const pilotPlanInputSchema = z
   .object({
     name: z.string().trim().min(2, "Enter a plan name").max(120),
     description: z.string().trim().max(1000).default(""),
+    badgeEnabled: z.preprocess((value) => value === "true" ? true : value === "false" ? false : value, z.boolean().default(true)),
+    badgeText: z.string().trim().max(40, "Keep the badge text under 40 characters").default(""),
     basePlan: objectId.refine(Boolean, "Choose the plan this pilot registers into"),
     duration: z.enum(PILOT_DURATIONS),
     customDuration: z.preprocess((value) => (value === "" || value === null ? undefined : value), z.coerce.number().int().min(1).max(120).optional()),
@@ -89,6 +91,8 @@ export type PilotPlanInput = z.output<typeof pilotPlanInputSchema>;
 export type PilotPlanFormValues = {
   name: string;
   description: string;
+  badgeEnabled: boolean;
+  badgeText: string;
   basePlan: string;
   duration: (typeof PILOT_DURATIONS)[number];
   customDuration?: number;
