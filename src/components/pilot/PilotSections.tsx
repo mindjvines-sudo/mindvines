@@ -11,17 +11,21 @@ import { findPilotPlanByCode, listPublicPilotPlans, type PublicPilotPlan } from 
 /** The pilot page is one cream band; its parts share the band's colour and gutters, so they read as one page. */
 const BAND = "bg-cream px-5 sm:px-8";
 
+const MINT_CARD = "rounded-[14px] border border-[#dbe6dd] bg-[#eaf3ec] p-4 sm:p-5";
+
 export function PilotIntro({ content = PILOT_INTRO_DEFAULT }: { content?: PilotIntroContent }) {
+  const badge = content.badge ?? PILOT_INTRO_DEFAULT.badge;
   return (
-    <section className={`${BAND} pt-10 lg:pt-[64px]`}>
+    <section className={`${BAND} pt-8 lg:pt-[56px]`}>
       <div className="mx-auto max-w-[1100px]">
-        <h1 className="font-display text-[34px] font-semibold leading-tight text-ink lg:text-[44px]">{content.heading}</h1>
-        <p className="mt-3 text-[18px] leading-relaxed">{content.lead}</p>
-        <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {badge && <p className="inline-block rounded-full bg-amber px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-ink">{badge}</p>}
+        <h1 className="mt-3 max-w-[760px] break-words font-serif text-[30px] font-bold leading-[1.15] text-[#2a2a2a] sm:text-[36px] lg:text-[44px]">{content.heading}</h1>
+        <p className="mt-4 max-w-[760px] text-[16px] leading-relaxed text-[#5f5a54] lg:text-[17px]">{content.lead}</p>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {content.steps.map((step, index) => (
-            <li key={index} className="rounded-[20px] bg-card p-5 shadow-card">
-              <h2 className="text-[17px] font-bold text-ink">{step.title}</h2>
-              <p className="mt-1 text-[16px] leading-relaxed">{step.text}</p>
+            <li key={index} className={MINT_CARD}>
+              <h2 className="text-[15px] font-bold leading-snug text-[#2f6b4f]">{step.title}</h2>
+              <p className="mt-1 text-[14px] leading-relaxed text-[#3d3a36]">{step.text}</p>
             </li>
           ))}
         </ol>
@@ -30,16 +34,24 @@ export function PilotIntro({ content = PILOT_INTRO_DEFAULT }: { content?: PilotI
   );
 }
 
+/** Content saved before icons existed has no icon key; an icon an admin cleared on purpose is "" and stays blank. */
+const FALLBACK_ICONS: [RegExp, string][] = [[/duration/i, "🗓️"], [/built together/i, "🤝"], [/pricing/i, "💚"], [/featuring/i, "⭐"]];
+const iconFor = (feature: { title: string; icon?: string }) => feature.icon ?? FALLBACK_ICONS.find(([pattern]) => pattern.test(feature.title))?.[1] ?? "";
+
 export function PilotFeatures({ content = PILOT_FEATURES_DEFAULT }: { content?: PilotFeaturesContent }) {
   return (
-    <section className={`${BAND} pt-12`}>
+    <section className={`${BAND} pt-10`}>
       <div className="mx-auto max-w-[1100px]">
-        <h2 className="font-display text-[28px] font-semibold text-ink">{content.heading}</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <h2 className="text-[20px] font-bold text-[#2a2a2a] lg:text-[24px]">{content.heading}</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {content.items.map((feature, index) => (
-            <section key={index} className={`rounded-[20px] bg-card p-5 shadow-card ${feature.wide ? "sm:col-span-2" : ""}`}>
-              <h3 className="text-[17px] font-bold text-ink">{feature.title}</h3>
-              <p className="mt-1 text-[16px] leading-relaxed">{feature.text}</p>
+            <section
+              key={index}
+              className={`rounded-[14px] border p-4 sm:p-5 ${feature.wide ? "sm:col-span-2 border-[#dbe6dd] bg-[#eaf3ec]" : "border-[#e6e0d6] bg-white"}`}
+            >
+              {iconFor(feature) && <p aria-hidden className="mb-2 text-[20px] leading-none">{iconFor(feature)}</p>}
+              <h3 className="text-[15px] font-bold text-[#2a2a2a]">{feature.title}</h3>
+              <p className="mt-1 text-[14px] leading-relaxed text-[#5f5a54]">{feature.text}</p>
             </section>
           ))}
         </div>

@@ -12,7 +12,9 @@ export const PILOT_STEPS = [
   { title: "4. Pass it on", text: "The journal is collected and moves to the next child." },
 ];
 
-export const PILOT_FEATURES: { title: string; text: string; wide?: boolean }[] = [
+export const PILOT_BADGE = "Pilot batch only";
+
+export const PILOT_FEATURES: { title: string; text: string; wide?: boolean; icon?: string }[] = [
   {
     title: "Who can participate",
     text: "Children aged 6 to 12 years from Bangalore, Hyderabad and Chennai. We are also delighted to have children associated with a prominent pan India based not-for-profit organisation as part of our pilot cohort.",
@@ -27,16 +29,19 @@ export const PILOT_FEATURES: { title: string; text: string; wide?: boolean }[] =
     title: "Duration and start date",
     text: "The pilot runs for 4 months, starting in January 2027. The exact date of commencement will be announced by the second week of December. After the pilot, batch members may be shuffled into new groups.",
     wide: true,
+    icon: "🗓️",
   },
-  { title: "Built together", text: "We are shaping Mindvines with the children and parents, and will listen closely to your feedback." },
+  { title: "Built together", text: "We are shaping Mindvines with the children and parents, and will listen closely to your feedback.", icon: "🤝" },
   {
     title: "Pilot pricing",
     text: "Choose a pilot plan below to see its discounted price. This discounted pilot price continues for as long as you choose to stay with Mindvines.",
+    icon: "💚",
   },
   {
     title: "Featuring entries",
     text: "With your consent, we may feature a child’s entries on our website and in our advertising, along with a nickname, school name and city.",
     wide: true,
+    icon: "⭐",
   },
 ];
 
@@ -44,13 +49,13 @@ export const PILOT_PLANS_HEADING = "Register for the pilot";
 export const PILOT_PLANS_INTRO =
   "Choose a plan, then register your child with the usual form. Seats are limited, and registration is complete once your payment is confirmed.";
 
-export type PilotIntroContent = { heading: string; lead: string; steps: { title: string; text: string }[] };
-export type PilotFeaturesContent = { heading: string; items: { title: string; text: string; wide: boolean }[] };
+export type PilotIntroContent = { badge: string; heading: string; lead: string; steps: { title: string; text: string }[] };
+export type PilotFeaturesContent = { heading: string; items: { title: string; text: string; wide: boolean; icon: string }[] };
 export type PilotPlansContent = { heading: string; intro: string };
 
-export const PILOT_INTRO_DEFAULT: PilotIntroContent = { heading: PILOT_HEADING, lead: PILOT_LEAD, steps: PILOT_STEPS };
+export const PILOT_INTRO_DEFAULT: PilotIntroContent = { badge: PILOT_BADGE, heading: PILOT_HEADING, lead: PILOT_LEAD, steps: PILOT_STEPS };
 export const PILOT_FEATURES_DEFAULT: PilotFeaturesContent = {
   heading: "Features of the pilot",
-  items: PILOT_FEATURES.map((feature) => ({ title: feature.title, text: feature.text, wide: Boolean(feature.wide) })),
+  items: PILOT_FEATURES.map((feature) => ({ title: feature.title, text: feature.text, wide: Boolean(feature.wide), icon: feature.icon ?? "" })),
 };
 export const PILOT_PLANS_DEFAULT: PilotPlansContent = { heading: PILOT_PLANS_HEADING, intro: PILOT_PLANS_INTRO };
