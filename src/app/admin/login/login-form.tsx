@@ -12,7 +12,7 @@ export function LoginForm() {
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-[13px] font-medium text-slate-700">
+        <label htmlFor="email" className="text-[13px] font-medium text-ink">
           Email
         </label>
         <div className="relative">
@@ -26,7 +26,7 @@ export function LoginForm() {
             placeholder="Email address"
             aria-invalid={state?.errors?.email ? true : undefined}
             aria-describedby={state?.errors?.email ? "email-error" : undefined}
-            className="h-12 w-full rounded-xl border border-line bg-white pl-11 pr-4 text-sm text-slate-900 shadow-[0_1px_2px_rgb(15_30_76/0.03)] placeholder:text-slate-400 transition-[border-color,box-shadow] hover:border-slate-300 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/15 focus-visible:outline-none aria-invalid:border-red-300"
+            className="h-12 w-full rounded-xl border border-field-line bg-white pl-11 pr-4 text-sm text-ink shadow-[0_1px_2px_rgb(77_63_50/0.05)] placeholder:text-slate-400 transition-[border-color,box-shadow] hover:border-tan focus:border-amber focus:outline-none focus:ring-4 focus:ring-amber/20 focus-visible:outline-none aria-invalid:border-red-300"
           />
         </div>
         {state?.errors?.email && (
@@ -37,7 +37,7 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-[13px] font-medium text-slate-700">
+        <label htmlFor="password" className="text-[13px] font-medium text-ink">
           Password
         </label>
         <div className="relative">
@@ -51,7 +51,7 @@ export function LoginForm() {
             placeholder="Password"
             aria-invalid={state?.errors?.password ? true : undefined}
             aria-describedby={state?.errors?.password ? "password-error" : undefined}
-            className="h-12 w-full rounded-xl border border-line bg-white pl-11 pr-11 text-sm text-slate-900 shadow-[0_1px_2px_rgb(15_30_76/0.03)] placeholder:text-slate-400 transition-[border-color,box-shadow] hover:border-slate-300 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/15 focus-visible:outline-none aria-invalid:border-red-300"
+            className="h-12 w-full rounded-xl border border-field-line bg-white pl-11 pr-11 text-sm text-ink shadow-[0_1px_2px_rgb(77_63_50/0.05)] placeholder:text-slate-400 transition-[border-color,box-shadow] hover:border-tan focus:border-amber focus:outline-none focus:ring-4 focus:ring-amber/20 focus-visible:outline-none aria-invalid:border-red-300"
           />
           <button
             type="button"
@@ -79,7 +79,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 h-12 w-full rounded-xl bg-primary-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:opacity-60"
+        className="mt-2 h-12 w-full rounded-xl bg-amber px-4 text-sm font-semibold text-ink shadow-[2px_4px_0_0_var(--color-ink)] transition-[transform,box-shadow,background-color] hover:bg-amber/90 active:translate-x-0.5 active:translate-y-1 active:shadow-none disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>

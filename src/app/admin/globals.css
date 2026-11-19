@@ -43,6 +43,16 @@
   --color-accent-500: #7070b1;
   --color-accent-600: #5c5c9e;
 
+  /* Public-site brand palette, used by the login page. */
+  --color-ink: #4d3f32;
+  --color-cocoa: #6a543d;
+  --color-tan: #b58c61;
+  --color-amber: #f0a500;
+  --color-cream: #fcf5e5;
+  --color-paper: #fdf9f2;
+  --color-butter: #fff0b9;
+  --color-field-line: #d6d0c7;
+
   --color-surface: #f4f7fb;
   --color-line: #e4e9f0;
 
