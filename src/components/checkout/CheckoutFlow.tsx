@@ -564,13 +564,13 @@ export function CheckoutFlow({
         <Section title="Contact">
           <FormField
             id="f-phone"
-            label="Mobile number (WhatsApp preferred)"
+            label="Mobile number"
             required
             error={errors.phone ?? errors.phoneCountry}
             className="sm:col-span-2"
-            hint="We'll use this number to send important operational updates about your child's Mindvines subscription, including dispatches, collections, delivery notifications and support."
+            hint="WhatsApp preferred. We'll send dispatch, delivery and support updates for your child's subscription here."
           >
-            <div className="mt-1 grid grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)] gap-2">
+            <div className="mt-1 grid grid-cols-[6.75rem_minmax(0,1fr)] gap-3 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]">
               <select
                 id="f-phoneCountry"
                 aria-label="Country code"
@@ -578,7 +578,7 @@ export function CheckoutFlow({
                 onChange={(event) => setDetail("phoneCountry", event.target.value)}
                 className={cn(INPUT, "mt-0 h-12 px-3")}
               >
-                {countries.map((country) => <option key={country.code} value={country.code}>{country.name} (+{country.dial})</option>)}
+                {countries.map((country) => <option key={country.code} value={country.code}>+{country.dial} {country.name}</option>)}
               </select>
               {text("phone", { type: "tel", autoComplete: "tel-national", inputMode: "tel", "aria-describedby": "f-phone-hint", className: cn(INPUT, "mt-0 h-12") })}
             </div>
@@ -853,9 +853,9 @@ function SummaryBlock({ title, onEdit, disabled, children }: { title: string; on
 
 function Row({ label, strong, children }: { label: string; strong?: boolean; children: React.ReactNode }) {
   return (
-    <div className={cn("flex justify-between gap-6", strong && "border-t border-ink/15 pt-2 text-[19px] font-bold")}>
-      <dt className={cn("shrink-0", !strong && "text-ink/70")}>{label}</dt>
-      <dd className="break-words text-right">{children}</dd>
+    <div className={cn("flex justify-between gap-4", strong && "border-t border-ink/15 pt-2 text-[19px] font-bold")}>
+      <dt className={cn("max-w-[48%] shrink-0 break-words", !strong && "text-ink/70")}>{label}</dt>
+      <dd className="min-w-0 flex-1 break-words text-right">{children}</dd>
     </div>
   );
 }
