@@ -95,6 +95,20 @@
     background-repeat: repeat-y;
   }
 
+  /* Phones: a smaller, closer spiral so it frames the text instead of crowding it. */
+  @media (max-width: 639px) {
+    .notebook-holes {
+      background-image:
+        radial-gradient(circle at 33px 34px, var(--color-butter) 0 12px, transparent 13px),
+        linear-gradient(to bottom, transparent 30px, var(--color-butter) 30px 38px, transparent 38px),
+        radial-gradient(circle at 31px 32px, rgb(77 63 50 / 0.5) 0 13.5px, transparent 15px);
+      background-size:
+        100% 72px,
+        34px 72px,
+        100% 72px;
+    }
+  }
+
   /* The live site's zigzag rule: amber teeth 4px wide and 3px tall. */
   .zigzag-rule {
     height: 3px;

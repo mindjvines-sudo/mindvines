@@ -92,17 +92,17 @@ export function Journey({ content = JOURNEY }: { content?: Widen<typeof JOURNEY>
           </div>
         </div>
 
-        {/* Mobile and tablet: one column, a dotted line between each step */}
-        <ol className="mx-auto mt-10 flex max-w-[420px] flex-col items-center lg:hidden">
+        {/* Mobile and tablet: swipe sideways, a dotted line between each step */}
+        <ol className="-mx-5 mt-10 flex snap-x snap-mandatory items-start gap-2 overflow-x-auto scroll-px-5 px-5 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-8 sm:scroll-px-8 sm:px-8 lg:hidden [&::-webkit-scrollbar]:hidden">
           {steps.map((step) => (
-            <li key={step.number} className="flex flex-col items-center">
-              <Reveal>
+            <li key={step.number} className="flex shrink-0 snap-center items-start">
+              <div className="w-[72vw] max-w-[300px]">
                 <StepCard step={step} />
-              </Reveal>
-              <span aria-hidden className="my-4 h-12 border-l-2 border-dotted border-amber" />
+              </div>
+              <span aria-hidden className="mx-3 mt-[90px] w-10 shrink-0 border-t-2 border-dotted border-amber" />
             </li>
           ))}
-          <li className="flex flex-col items-center gap-4">
+          <li className="flex w-[72vw] max-w-[300px] shrink-0 snap-center flex-col items-center gap-4 self-center">
             <p className="max-w-[220px] text-center font-display text-[20px] font-semibold leading-[1.22] text-ink">
               {finale.text}
             </p>
