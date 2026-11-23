@@ -95,17 +95,17 @@
     background-repeat: repeat-y;
   }
 
-  /* Phones: a smaller, closer spiral so it frames the text instead of crowding it. */
-  @media (max-width: 639px) {
+  /* Phones and small tablets: small, quiet binder holes that sit inside the left margin. */
+  @media (max-width: 767px) {
     .notebook-holes {
       background-image:
-        radial-gradient(circle at 33px 34px, var(--color-butter) 0 12px, transparent 13px),
-        linear-gradient(to bottom, transparent 30px, var(--color-butter) 30px 38px, transparent 38px),
-        radial-gradient(circle at 31px 32px, rgb(77 63 50 / 0.5) 0 13.5px, transparent 15px);
+        radial-gradient(circle at 26px 30px, var(--color-butter) 0 8px, transparent 9px),
+        linear-gradient(to bottom, transparent 27px, var(--color-butter) 27px 33px, transparent 33px),
+        radial-gradient(circle at 25px 29px, rgb(77 63 50 / 0.3) 0 9.5px, transparent 11px);
       background-size:
-        100% 72px,
-        34px 72px,
-        100% 72px;
+        100% 64px,
+        26px 64px,
+        100% 64px;
     }
   }
 
