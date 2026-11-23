@@ -44,6 +44,7 @@ export const adminNavigation: AdminNavItem[] = [
   { label: "Blog", href: "/admin/blog", resource: "blog", group: "Website content", icon: "blog" },
   { label: "Media Library", href: "/admin/media", resource: "media", group: "Website content", icon: "media" },
   { label: "Settings", href: "/admin/settings", resource: "settings", group: "System", icon: "settings" },
+  { label: "Database Backup", href: "/admin/backup", resource: "backup", group: "System", icon: "directory" },
 ];
 
 /**

@@ -23,6 +23,8 @@ export const RESOURCES = [
   "locations",
   // Pilot offers: plans, limits and their registrations. Plans are deactivated, never deleted, so no "delete" below.
   "pilotPlans",
+  // Full database download. Not in any role's matrix: Super Admin only.
+  "backup",
 ] as const;
 export type Resource = (typeof RESOURCES)[number];
 
