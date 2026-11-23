@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { NextStepButton } from "@/components/sections/NextStepButton";
 import { Reveal } from "@/components/animations/Reveal";
 import { JOURNEY, SECTION_IDS, type JourneyStep } from "@/lib/content";
 import type { Widen } from "@/lib/cms/widen";
@@ -99,7 +100,7 @@ export function Journey({ content = JOURNEY }: { content?: Widen<typeof JOURNEY>
               <div className="w-[72vw] max-w-[300px]">
                 <StepCard step={step} />
               </div>
-              <span aria-hidden className="mx-3 mt-[90px] w-10 shrink-0 border-t-2 border-dotted border-amber" />
+              <NextStepButton label={`Go to step ${step.number + 1}`} />
             </li>
           ))}
           <li className="flex w-[72vw] max-w-[300px] shrink-0 snap-center flex-col items-center gap-4 self-center">

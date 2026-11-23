@@ -19,7 +19,7 @@ export function FounderNote({ content = FOUNDER_NOTE }: { content?: FounderNoteC
 
         <Reveal className="mt-10 lg:mt-[62px]">
           <article className="notebook-holes relative rounded-xl bg-sheet py-9 pl-[52px] pr-6 text-[17px] font-semibold leading-[1.65] text-ink shadow-[0_8px_24px_-8px_rgba(77,63,50,0.3)] [overflow-wrap:anywhere] md:rounded-none md:py-[52px] md:pl-[84px] md:pr-10 md:font-bold md:leading-[1.3] md:shadow-[6px_0_0_0_#96917c] md:[overflow-wrap:normal] lg:pb-[85px] lg:pl-[100px] lg:pr-[66px] lg:pt-[70px] lg:text-[22.77px]">
-            <div className="flex flex-col gap-[22px] md:gap-[1.3em]">
+            <div className="flex flex-col gap-[30px] md:gap-[1.3em]">
               {paragraphs.map((runs, index) => (
                 <p key={index}>{renderRuns(runs)}</p>
               ))}
